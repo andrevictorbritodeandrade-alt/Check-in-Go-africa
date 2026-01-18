@@ -1,0 +1,20 @@
+{
+  "short_name": "Check-in Go!",
+  "name": "Check-in Go! África do Sul",
+  "icons": [
+    {
+      "src": "https://flagcdn.com/w160/za.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://flagcdn.com/w2560/za.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#007749",
+  "background_color": "#ffffff"
+}
