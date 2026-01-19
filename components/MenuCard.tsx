@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MenuItem } from '../types';
 
@@ -15,13 +16,13 @@ const MenuCard: React.FC<MenuCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full p-[2px] rounded-lg shadow-2xl transition-all duration-300 active:scale-95 border-2 ${gradientClass}`}
+      className={`group relative w-full aspect-square p-[2px] rounded-lg shadow-2xl transition-all duration-300 active:scale-95 border-2 ${gradientClass}`}
     >
-      <div className="flex flex-col items-center justify-center p-3 gap-2 h-full w-full relative z-10">
-        <div className="p-1 group-hover:scale-110 transition-transform duration-500">
+      <div className="flex flex-col items-center justify-center p-2 gap-1 h-full w-full relative z-10">
+        <div className="group-hover:scale-110 transition-transform duration-500 shrink-0">
           {icon}
         </div>
-        <span className={`${textColor} text-[10px] font-display font-black tracking-widest text-center uppercase leading-tight`}>
+        <span className={`${textColor} text-[13px] font-display font-black tracking-widest text-center uppercase leading-tight px-1`}>
           {title}
         </span>
       </div>

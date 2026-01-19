@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Car, 
@@ -5,11 +6,12 @@ import {
   Clock, 
   CalendarDays, 
   Calculator,
-  TrendingUp
+  TrendingUp,
+  CheckCircle2
 } from 'lucide-react';
 import { getRates } from '../services/currencyService';
 
-interface Ride {
+export interface Ride {
   id: string;
   date: string;
   weekday: string;
@@ -20,10 +22,11 @@ interface Ride {
   currency: 'ZAR' | 'BRL';
   app: 'Uber' | 'Bolt';
   appLabel?: string;
+  isConfirmed?: boolean;
 }
 
-// DADOS DOS TRAJETOS - Atualizado com os prints enviados
-const RIDES: Ride[] = [
+// DADOS DOS TRAJETOS - Exportados para o sistema de alertas
+export const RIDES: Ride[] = [
   {
     id: 'u-01',
     date: '24/Jan',
@@ -41,12 +44,25 @@ const RIDES: Ride[] = [
     date: '24/Jan',
     weekday: 'Sábado',
     time: '13:00',
-    origin: 'Terminal Rodoviário - Guarda Volumes',
+    origin: 'Terminal Rodoviário Tietê',
     destination: 'Hotel Domani',
     price: 33.95,
     currency: 'BRL',
     app: 'Uber',
     appLabel: 'UberX'
+  },
+  {
+    id: 'u-03',
+    date: '07/Fev',
+    weekday: 'Sábado',
+    time: '11:30',
+    origin: 'Nobile Downtown São Paulo',
+    destination: 'Terminal Rodoviário Tietê',
+    price: 17.92,
+    currency: 'BRL',
+    app: 'Uber',
+    appLabel: 'UberX',
+    isConfirmed: true
   },
   {
     id: '1',
@@ -156,11 +172,7 @@ const UberBoltList: React.FC = () => {
 
       {/* Lista de Corridas */}
       <div className="space-y-4">
-        {/* Ordenação por data e horário */}
-        {RIDES.sort((a, b) => {
-          // Ordenação simples por ID/Ordem de inserção ou lógica de data se necessário
-          return 0; 
-        }).map((ride) => {
+        {RIDES.map((ride) => {
             const displayPriceBRL = ride.currency === 'BRL' ? ride.price : ride.price * zarToBrlRate;
             const displayPriceZAR = ride.currency === 'ZAR' ? ride.price : ride.price * brlToZarRate;
 
@@ -176,9 +188,16 @@ const UberBoltList: React.FC = () => {
                               <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
                                   <CalendarDays className="w-3 h-3" /> {ride.date} • {ride.weekday}
                               </span>
-                              <span className="flex items-center gap-1.5 text-lg font-black text-slate-800">
-                                  <Clock className="w-4 h-4 text-slate-300" /> {ride.time}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-1.5 text-lg font-black text-slate-800">
+                                    <Clock className="w-4 h-4 text-slate-300" /> {ride.time}
+                                </span>
+                                {ride.isConfirmed && (
+                                  <span className="flex items-center gap-1 bg-green-100 text-green-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
+                                    <CheckCircle2 className="w-2.5 h-2.5" /> Confirmado
+                                  </span>
+                                )}
+                              </div>
                           </div>
                           <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
                               ride.app === 'Uber' 

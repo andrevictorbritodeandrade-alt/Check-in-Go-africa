@@ -13,7 +13,8 @@ import {
   Car,
   Navigation,
   Wallet,
-  Calculator
+  Calculator,
+  CheckCircle2
 } from 'lucide-react';
 
 interface UberOption {
@@ -21,6 +22,7 @@ interface UberOption {
   price: string;
   desc: string;
   recommended?: boolean;
+  confirmed?: boolean;
 }
 
 interface BusTrip {
@@ -98,13 +100,12 @@ const BUS_DATA: BusTrip[] = [
     date: '07/Fev',
     fullDate: '07/02/2026',
     firstMile: {
-      title: 'Logística Inicial: Estadia → Rodoviária',
-      origin: 'Av. Suplicy, 40 - Picanço',
+      title: 'Reserva Confirmada: Estadia → Rodoviária',
+      origin: 'Nobile Downtown São Paulo',
       dest: 'Terminal Rodoviário Tietê',
       options: [
-        { type: 'UberX', price: 'R$ 42,98', desc: 'Recomendado (4 passageiros)', recommended: true },
-        { type: 'Uber Bag', price: 'R$ 50,98', desc: 'Porta-malas maior (Ideal p/ Malas)' },
-        { type: 'Comfort', price: 'R$ 51,12', desc: 'Carros mais novos' }
+        { type: 'UberX', price: 'R$ 17,92', desc: 'Reserva Confirmada às 11:30 BRT', recommended: true, confirmed: true },
+        { type: 'Comfort', price: 'R$ 22,50', desc: 'Carros mais novos' }
       ]
     }
   }
@@ -146,8 +147,15 @@ const BusList: React.FC = () => {
         <div className="absolute inset-0 opacity-10 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Mercator_projection_Square.JPG/1200px-Mercator_projection_Square.JPG')] bg-cover mix-blend-overlay"></div>
         
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4 text-slate-400 text-xs font-bold uppercase tracking-widest border-b border-slate-700 pb-2">
-            <Car className="w-4 h-4" /> {data.title}
+          <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-2">
+            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
+              <Car className="w-4 h-4" /> {data.title}
+            </div>
+            {data.options.some(o => o.confirmed) && (
+              <span className="flex items-center gap-1 bg-green-900/40 text-green-400 text-[9px] px-2 py-0.5 rounded-full border border-green-800">
+                <CheckCircle2 className="w-3 h-3" /> RESERVADO
+              </span>
+            )}
           </div>
           
           <div className="flex flex-col gap-1 mb-4">
@@ -168,7 +176,11 @@ const BusList: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">{opt.type}</span>
-                        {opt.recommended && <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold uppercase">Melhor Opção</span>}
+                        {opt.confirmed ? (
+                          <span className="text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded font-bold uppercase">Confirmado</span>
+                        ) : opt.recommended && (
+                          <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold uppercase">Melhor Opção</span>
+                        )}
                     </div>
                     <span className={`text-[10px] block mt-0.5 ${opt.recommended ? 'text-slate-500' : 'text-slate-500'}`}>{opt.desc}</span>
                   </div>
@@ -177,8 +189,8 @@ const BusList: React.FC = () => {
             ))}
           </div>
           
-          <p className="text-[10px] text-slate-500 mt-3 text-center">
-            * Valor estimado para a viagem às {type === 'first' ? '12:00' : '13:00'}.
+          <p className="text-[10px] text-slate-500 mt-3 text-center italic">
+            * Dados extraídos da reserva confirmada no aplicativo Uber.
           </p>
         </div>
     </div>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import TopBar from './components/TopBar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -16,7 +17,7 @@ import AccommodationList from './components/AccommodationList';
 import BusList from './components/BusList';
 import SowetoPro from './components/SowetoPro';
 import VaccineCertificate from './components/VaccineCertificate';
-import UberBoltList from './components/UberBoltList';
+import UberBoltList, { RIDES } from './components/UberBoltList';
 import WeatherLocation from './components/WeatherLocation';
 import WeatherCardHome from './components/WeatherCardHome';
 import { MENU_ITEMS } from './constants';
@@ -25,6 +26,68 @@ import { ThemeColor, MenuItem } from './types';
 
 const App: React.FC = () => {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const notifiedIds = useRef<Set<string>>(new Set());
+
+  // Solicita permissão de notificação no início
+  useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Monitor de Viagens de Uber (Notificações)
+  useEffect(() => {
+    const checkRides = () => {
+      const now = new Date();
+      
+      RIDES.forEach(ride => {
+        // Parsing data e hora (Ex: '24/Jan' e '05:00')
+        const [day, monthStr] = ride.date.split('/');
+        const [hours, minutes] = ride.time.split(':');
+        
+        const months: Record<string, number> = { 
+          'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5,
+          'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11
+        };
+
+        const rideDate = new Date(2026, months[monthStr], parseInt(day), parseInt(hours), parseInt(minutes));
+        const diffMs = rideDate.getTime() - now.getTime();
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+
+        // Janelas de alerta: 120min (2h), 60min (1h), 30min
+        const thresholds = [120, 60, 30];
+        
+        thresholds.forEach(t => {
+          const key = `${ride.id}-${t}`;
+          // Se estiver na janela de tempo e ainda não notificamos esse limite específico
+          if (diffMins === t && !notifiedIds.current.has(key)) {
+            triggerNotification(ride, t);
+            notifiedIds.current.add(key);
+          }
+        });
+      });
+    };
+
+    const triggerNotification = (ride: any, minutesLeft: number) => {
+      const title = `⚠️ ALERTA DE VIAGEM (${minutesLeft}min)`;
+      const body = `Faltam ${minutesLeft} minutos para sua viagem de ${ride.app} para: ${ride.destination}. Prepare-se!`;
+      
+      // 1. Notificação de Navegador (Acende a tela / Barra de status)
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body, icon: '/favicon.svg' });
+      }
+
+      // 2. Evento Interno para o "Sininho" (TopBar)
+      const event = new CustomEvent('app-notification', { detail: body });
+      window.dispatchEvent(event);
+    };
+
+    // Verifica a cada 60 segundos
+    const interval = setInterval(checkRides, 60000);
+    checkRides(); // Check imediato
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {

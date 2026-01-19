@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Banknote, 
@@ -22,7 +23,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'clima_localizacao',
     title: 'Clima & Local',
-    icon: <CloudSun className="w-6 h-6 text-sa-gold" />,
+    icon: <CloudSun className="w-12 h-12 text-sa-gold" />,
     themeColor: 'blue',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
@@ -31,7 +32,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'cambio',
     title: 'Câmbio',
-    icon: <Banknote className="w-6 h-6 text-sa-gold" />,
+    icon: <Banknote className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
@@ -40,7 +41,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'checklist',
     title: 'Checklist Malas',
-    icon: <ClipboardList className="w-6 h-6 text-sa-gold" />,
+    icon: <ClipboardList className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
@@ -49,7 +50,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'financeiro',
     title: 'Financeiro',
-    icon: <Wallet className="w-6 h-6 text-sa-gold" />,
+    icon: <Wallet className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
@@ -58,7 +59,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'gastos',
     title: 'Gastos',
-    icon: <Receipt className="w-6 h-6 text-sa-gold" />,
+    icon: <Receipt className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
@@ -67,7 +68,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'uber_bolt',
     title: 'Uber / Bolt',
-    icon: <Car className="w-6 h-6 text-sa-gold" />,
+    icon: <Car className="w-12 h-12 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
     textColor: 'text-white',
@@ -76,7 +77,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'guias',
     title: 'Roteiro',
-    icon: <Map className="w-6 h-6 text-sa-gold" />,
+    icon: <Map className="w-12 h-12 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
     textColor: 'text-white',
@@ -85,7 +86,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'hospedagem',
     title: 'Hospedagem',
-    icon: <Hotel className="w-6 h-6 text-sa-gold" />,
+    icon: <Hotel className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
@@ -94,7 +95,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'tradutor',
     title: 'Idiomas',
-    icon: <Languages className="w-6 h-6 text-sa-gold" />,
+    icon: <Languages className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
@@ -103,7 +104,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'melhores_destinos',
     title: 'Melhores Destinos',
-    icon: <Compass className="w-6 h-6 text-sa-gold" />,
+    icon: <Compass className="w-12 h-12 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
     textColor: 'text-white',
@@ -112,7 +113,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'onibus',
     title: 'Ônibus',
-    icon: <Bus className="w-6 h-6 text-sa-gold" />,
+    icon: <Bus className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
@@ -121,7 +122,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'soweto_pro',
     title: 'Soweto Pro',
-    icon: <Mic2 className="w-6 h-6 text-sa-gold" />,
+    icon: <Mic2 className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
@@ -130,7 +131,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'vacinas',
     title: 'Vacinas (CIVP)',
-    icon: <Syringe className="w-6 h-6 text-sa-gold" />,
+    icon: <Syringe className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
     textColor: 'text-white',
@@ -139,7 +140,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'voos',
     title: 'Voos',
-    icon: <Plane className="w-6 h-6 text-sa-gold" />,
+    icon: <Plane className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
@@ -148,7 +149,7 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'ia_assistant',
     title: 'Guia IA',
-    icon: <Brain className="w-6 h-6 text-sa-gold" />,
+    icon: <Brain className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
