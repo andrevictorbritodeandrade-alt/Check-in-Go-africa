@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
-  Map, 
+  Map as MapIcon, 
   Calendar, 
   Utensils, 
   Camera, 
@@ -10,30 +11,61 @@ import {
   MapPin,
   Clock,
   Bus,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck,
+  Zap,
+  DollarSign,
+  Shirt,
+  CloudRain,
+  Wind,
+  Droplets,
+  Plane,
+  AlertTriangle,
+  Navigation,
+  Plus,
+  Sparkles,
+  Waves,
+  ThermometerSun,
+  ExternalLink
 } from 'lucide-react';
+import { Map, Marker } from 'pigeon-maps';
 import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
-export const GUIDE_STORAGE_KEY = 'checkin_go_guides_v1';
+export const GUIDE_STORAGE_KEY = 'checkin_go_guides_v2';
 
-interface DayActivity {
-  time: string;
-  activity: string;
-  location: string;
-  type: 'food' | 'sight' | 'transport';
-  notes?: string;
+interface ActivityPlan {
+  type: 'plan_a' | 'plan_b' | 'food' | 'security' | 'info' | 'flight';
+  text: string;
+  label?: string;
+}
+
+interface DayWeather {
+  icon: string;
+  temp: string;
+  min: string;
+  feels: string;
+  rain: string;
+  wind: string;
+  sea?: string; // Opcional agora para JNB
 }
 
 interface DailyPlan {
   day: number;
+  weekday: string;
   date: string;
   title: string;
-  activities: DayActivity[];
-  budget: {
-    food: number;
-    transport: number;
-    tickets: number;
+  weather: DayWeather;
+  plans: ActivityPlan[];
+  map: {
+    center: [number, number];
+    zoom: number;
+    markers: [number, number][];
   };
+  estimate: string;
+  estimateLabel: string;
+  look: string;
+  isDeparture?: boolean;
+  isArrival?: boolean;
 }
 
 interface GuideData {
@@ -44,124 +76,398 @@ interface GuideData {
 const DEFAULT_GUIDE: GuideData = {
   CPT: [
     {
-      day: 1,
-      date: '26/Jan',
-      title: 'Chegada & Waterfront',
-      activities: [
-        { time: '14:00', activity: 'Check-in Airbnb', location: 'Cidade do Cabo', type: 'transport' },
-        { time: '16:00', activity: 'Passeio V&A Waterfront', location: 'Waterfront', type: 'sight', notes: 'Trocar dinheiro e comprar chip' },
-        { time: '19:00', activity: 'Jantar no Willoughby & Co', location: 'Waterfront', type: 'food' }
+      day: 26,
+      weekday: 'SEGUNDA',
+      date: 'JAN',
+      isArrival: true,
+      title: 'Chegada: Conforto ou Economia',
+      weather: { icon: '☀️', temp: '26°', min: '18°', feels: '26°', rain: '0%', wind: '25km/h', sea: '15°' },
+      plans: [
+        { type: 'flight', text: 'Chegada JNB -> CPT (Voo Interno)' },
+        { type: 'plan_a', label: 'PLANO A (Conforto)', text: 'Uber direto do aeroporto para o hotel (aprox. R$ 120-150). Rápido e seguro.' },
+        { type: 'plan_b', label: 'PLANO B (Econômico)', text: 'Ônibus MyCiti. Sai do terminal e te deixa no Civic Centre por R$ 30. Seguro e moderno.' },
+        { type: 'food', text: 'Jantar: V&A Waterfront (Turístico) ou Long Street (Agitado/Bares).' }
       ],
-      budget: { food: 600, transport: 100, tickets: 0 }
+      map: { center: [-33.9145, 18.4239], zoom: 12, markers: [[-33.9145, 18.4239]] },
+      estimate: 'R$ 250',
+      estimateLabel: 'Planos A e B disponíveis',
+      look: 'Aerolook em camadas (vento frio).'
     },
     {
-      day: 2,
-      date: '27/Jan',
-      title: 'Table Mountain & Centro',
-      activities: [
-        { time: '08:00', activity: 'Table Mountain (Bondinho)', location: 'Table Mountain', type: 'sight' },
-        { time: '13:00', activity: 'Almoço em Kloof Street', location: 'Gardens', type: 'food' },
-        { time: '15:00', activity: 'Bo-Kaap e Company\'s Garden', location: 'Centro', type: 'sight' }
+      day: 27,
+      weekday: 'TERÇA',
+      date: 'JAN',
+      title: 'Montanhas, Praias e Futebol',
+      weather: { icon: '☀️', temp: '29°', min: '19°', feels: '31°', rain: '0%', wind: '35km/h', sea: '14°' },
+      plans: [
+        { type: 'plan_a', label: 'PLANO A', text: 'Subida de Bondinho (Cableway) na Table Mountain (~R$ 250 casal). Vista panorâmica sem esforço.' },
+        { type: 'plan_b', label: 'PLANO B', text: 'Trilha "Platteklip Gorge" (Grátis, mas cansativo, 2h subida) OU Pôr do sol no Signal Hill (Grátis, vá de Uber) com piquenique.' },
+        { type: 'info', text: '⚽ Jogo: Cape Town City FC vs AmaTuks às 15h30 no Athlone Stadium.' },
+        { type: 'food', text: 'Jantar: Mojo Market (Sea Point) - Opções baratas e música ao vivo.' }
       ],
-      budget: { food: 500, transport: 150, tickets: 900 }
+      map: { center: [-33.9608, 18.4131], zoom: 12, markers: [[-33.9608, 18.4131], [-33.9185, 18.3944]] },
+      estimate: 'R$ 300',
+      estimateLabel: 'Bondinho ou Trilha',
+      look: 'Tênis obrigatório se fizer trilha. Casaco corta-vento (Vento Forte!).'
+    },
+    {
+      day: 28,
+      weekday: 'QUARTA',
+      date: 'JAN',
+      title: 'Vinhos & Chocolate (Confirmado)',
+      weather: { icon: '☀️', temp: '25°', min: '17°', feels: '25°', rain: '15%', wind: '20km/h', sea: '15°' },
+      plans: [
+        { type: 'plan_a', label: 'AGENDADO', text: '10:30: Groot Constantia (Ref: 7whdlc). "Visitors Route + Chocolate" (CONFIRMADO).' },
+        { type: 'info', text: 'Inclui: 5 Vinhos harmonizados com 5 Chocolates, entrada nos Museus, Tour na Adega e Taça de Cristal.' },
+        { type: 'info', text: 'Custo ~R$ 90/pessoa. Dica: Baixe o app VoiceMap para o audio guide.' },
+        { type: 'food', text: 'Almoço: Restaurante Jonkershuis ou Simons dentro da vinícola.' },
+        { type: 'info', text: 'Tarde: The Watershed (V&A Waterfront) para artesanato ou relaxar.' }
+      ],
+      map: { center: [-34.0281, 18.4239], zoom: 13, markers: [[-34.0281, 18.4239]] },
+      estimate: 'R$ 560',
+      estimateLabel: 'Groot Constantia (Já pago)',
+      look: 'Casual elegante (fotos na vinícola).'
+    },
+    {
+      day: 29,
+      weekday: 'QUINTA',
+      date: 'JAN',
+      title: 'Cores e Sabores',
+      weather: { icon: '☀️', temp: '28°', min: '18°', feels: '30°', rain: '0%', wind: '30km/h', sea: '14°' },
+      plans: [
+        { type: 'info', text: 'Manhã: Bo-Kaap (Casas Coloridas). Grátis para andar e tirar fotos.' },
+        { type: 'plan_a', label: 'PLANO A', text: 'Almoço em restaurante típico Malalo no Bo-Kaap.' },
+        { type: 'plan_b', label: 'PLANO B', text: 'Almoço no "Eastern Food Bazaar". Comida indiana/asiática deliciosa por R$ 20-30 o prato.' },
+        { type: 'security', text: 'Segurança: Não ande no centro (CBD) após as 17h30.' }
+      ],
+      map: { center: [-33.9197, 18.4168], zoom: 14, markers: [[-33.9197, 18.4168]] },
+      estimate: 'R$ 180',
+      estimateLabel: 'Comida barata no centro',
+      look: 'Roupas coloridas para fotos no Bo-Kaap.'
+    },
+    {
+      day: 30,
+      weekday: 'SEXTA',
+      date: 'JAN',
+      title: 'Dia Livre / Praias',
+      weather: { icon: '☀️', temp: '30°', min: '20°', feels: '32°', rain: '0%', wind: '15km/h', sea: '16°' },
+      plans: [
+        { type: 'info', text: 'Sugestão: Praias de Clifton ou Camps Bay para curtir o mar gelado.' },
+        { type: 'info', text: 'Despedida: Pôr do sol clássico na orla.' }
+      ],
+      map: { center: [-33.9401, 18.3776], zoom: 13, markers: [[-33.9401, 18.3776]] },
+      estimate: 'R$ 350',
+      estimateLabel: 'Último dia',
+      look: 'Roupa de banho e protetor solar.'
+    },
+    {
+      day: 31,
+      weekday: 'SÁBADO',
+      date: 'JAN',
+      isDeparture: true,
+      title: 'Ida para Joanesburgo',
+      weather: { icon: '☀️', temp: '24°', min: '17°', feels: '23°', rain: '20%', wind: '25km/h', sea: '15°' },
+      plans: [
+        { type: 'info', text: 'Manhã livre. Voo para JNB à noite.' },
+        { type: 'plan_b', label: 'PLANO B (Econômico)', text: 'Use o MyCiti Bus para ir ao aeroporto se estiver perto de uma parada.' }
+      ],
+      map: { center: [-33.9694, 18.5971], zoom: 13, markers: [[-33.9694, 18.5971]] },
+      estimate: 'R$ 200',
+      estimateLabel: 'Uber + Comida + Ingressos',
+      look: 'Roupa de viagem.'
     }
   ],
   JNB: [
     {
       day: 1,
-      date: '01/Fev',
-      title: 'Chegada & Sandton',
-      activities: [
-        { time: '12:00', activity: 'Chegada em JNB', location: 'OR Tambo', type: 'transport' },
-        { time: '14:00', activity: 'Check-in Hotel', location: 'Sandton', type: 'transport' },
-        { time: '16:00', activity: 'Nelson Mandela Square', location: 'Sandton City', type: 'sight' }
+      weekday: 'DOMINGO',
+      date: 'FEV',
+      title: 'História, Jogo do Povo & Melville',
+      weather: { icon: '⛅', temp: '28°', min: '16°', feels: '29°', rain: '40%', wind: '10km/h' },
+      plans: [
+        { type: 'info', text: 'Manhã: Acorde na sua base "84 on Fourth" em Melville.' },
+        { type: 'plan_a', label: 'UBER', text: '09:00: Uber para Soweto (Vilakazi St). Visite a Mandela House e Memorial Hector Pieterson.' },
+        { type: 'food', text: 'Almoço: Sakhumzi Restaurant (Vilakazi St). Comida típica e vibração da torcida.' },
+        { type: 'info', text: 'Tarde: Uber para FNB Stadium (Soccer City).' },
+        { type: 'plan_a', label: 'EVENTO', text: '⚽ JOGO: Kaizer Chiefs vs Zesco United (CAF). A entrada é elétrica!' },
+        { type: 'food', text: 'Noite: Retorno para Melville. Jantar relaxante na 7th Street (5 min a pé).' }
       ],
-      budget: { food: 400, transport: 300, tickets: 0 }
+      map: { center: [-26.2348, 27.9734], zoom: 12, markers: [[-26.2348, 27.9734], [-26.2384, 27.9056]] },
+      estimate: 'R$ 460',
+      estimateLabel: 'Soweto e Jogo (Uber/Bolt)',
+      look: 'Camisa Amarela/Preta (Chiefs) + Tênis.'
+    },
+    {
+      day: 2,
+      weekday: 'SEGUNDA',
+      date: 'FEV',
+      title: 'O Peso da História e o Ouro',
+      weather: { icon: '🌧️', temp: '27°', min: '15°', feels: '28°', rain: '60%', wind: '15km/h' },
+      plans: [
+        { type: 'plan_a', label: 'CULTURA', text: 'Manhã: Apartheid Museum. Reserve pelo menos 3 horas. É profundo e necessário.' },
+        { type: 'plan_b', label: 'DIVERSÃO', text: 'Tarde: Gold Reef City (Ao lado). Parque temático numa mina de ouro.' },
+        { type: 'info', text: 'Atividade: Faça o "Mine Tour" para descer na mina de verdade.' },
+        { type: 'security', text: 'Dica: É um dia mais caro de ingressos, mas vale cada centavo.' }
+      ],
+      map: { center: [-26.2366, 28.0069], zoom: 14, markers: [[-26.2366, 28.0069], [-26.2392, 28.0128]] },
+      estimate: 'R$ 530',
+      estimateLabel: 'Combo Museu + Gold Reef',
+      look: 'Tênis confortável. Anda-se muito.'
+    },
+    {
+      day: 3,
+      weekday: 'TERÇA',
+      date: 'FEV',
+      title: 'Vista Panorâmica & Red Bus',
+      weather: { icon: '☁️', temp: '29°', min: '16°', feels: '30°', rain: '30%', wind: '12km/h' },
+      plans: [
+        { type: 'plan_a', label: 'PASSEIO', text: 'Manhã: Uber até Constitution Hill (Antigo forte/prisão e atual Corte Constitucional).' },
+        { type: 'plan_b', label: 'RED BUS', text: 'Tarde: Embarque no "City Sightseeing Red Bus" (Green Tour) na parada da Constitution Hill.' },
+        { type: 'info', text: 'Parada Sugerida: Desça em Rosebank para o Mercado de Artesanato e passar no Pick n Pay.' },
+        { type: 'security', text: 'Segurança: O Red Bus é a forma mais segura de ver o centro da cidade.' }
+      ],
+      map: { center: [-26.1895, 28.0422], zoom: 12, markers: [[-26.1895, 28.0422]] },
+      estimate: 'R$ 430',
+      estimateLabel: 'Red Bus Ticket',
+      look: 'Urbano e leve.'
+    },
+    {
+      day: 4,
+      weekday: 'QUARTA',
+      date: 'FEV',
+      title: 'Safari: Leão & Girafa',
+      weather: { icon: '☀️', temp: '30°', min: '17°', feels: '32°', rain: '10%', wind: '10km/h' },
+      plans: [
+        { type: 'plan_a', label: 'DIA TODO', text: 'Dia todo: Lion & Safari Park (40 min de Melville).' },
+        { type: 'info', text: 'Atividade: Safári Guiado (Guided Game Drive). Veja leões, guepardos e girafas de perto.' },
+        { type: 'security', text: 'Experiência: Ambiente controlado e seguro, perfeito para quem tem pouco tempo.' }
+      ],
+      map: { center: [-25.8906, 27.8864], zoom: 12, markers: [[-25.8906, 27.8864]] },
+      estimate: 'R$ 700',
+      estimateLabel: 'Lion Park Tour',
+      look: 'Cores neutras (Bege/Verde) + Chapéu.'
+    },
+    {
+      day: 5,
+      weekday: 'QUINTA',
+      date: 'FEV',
+      isDeparture: true,
+      title: 'Compras & Despedida',
+      weather: { icon: '🌧️', temp: '26°', min: '15°', feels: '27°', rain: '50%', wind: '15km/h' },
+      plans: [
+        { type: 'plan_a', label: 'SHOPPING', text: 'Manhã: Sandton City Mall e Nelson Mandela Square. Compras de camisas e presentes.' },
+        { type: 'food', text: 'Almoço: Na praça da estátua gigante de Mandela.' },
+        { type: 'info', text: 'Tarde: Retorno para Melville. Relaxar na piscina do 84 on Fourth e arrumar malas.' },
+        { type: 'flight', text: '21:30: Uber para Aeroporto OR Tambo (Trajeto 40min).' },
+        { type: 'flight', text: 'Voo de volta: 00h45 (Madrugada de Quinta p/ Sexta).' }
+      ],
+      map: { center: [-26.1075, 28.0567], zoom: 13, markers: [[-26.1075, 28.0567]] },
+      estimate: 'R$ 400',
+      estimateLabel: 'Jantar + Uber Aeroporto',
+      look: 'Confortável para viagem longa.'
+    },
+    {
+      day: 6,
+      weekday: 'SEXTA',
+      date: 'FEV',
+      isDeparture: true,
+      title: 'Retorno ao Brasil',
+      weather: { icon: '⛅', temp: '25°', min: '14°', feels: '25°', rain: '45%', wind: '10km/h' },
+      plans: [
+        { type: 'flight', text: 'Voo em andamento. Chegada em GRU prevista para a tarde.' }
+      ],
+      map: { center: [-23.4356, -46.4731], zoom: 10, markers: [[-23.4356, -46.4731]] },
+      estimate: 'R$ 0',
+      estimateLabel: 'Voo Internacional',
+      look: 'Adicione uma dica de look.'
     }
   ]
 };
 
-const DayCard: React.FC<{ plan: DailyPlan }> = ({ plan }) => {
-  const [expanded, setExpanded] = useState(false);
+const PlanItem: React.FC<{ plan: ActivityPlan }> = ({ plan }) => {
+  const getStyle = () => {
+    switch(plan.type) {
+      case 'plan_a': return 'bg-purple-50 text-purple-700 border-purple-100';
+      case 'plan_b': return 'bg-green-50 text-green-700 border-green-100';
+      case 'security': return 'bg-red-50 text-red-700 border-red-100';
+      case 'food': return 'bg-orange-50 text-orange-700 border-orange-100';
+      case 'flight': return 'bg-blue-50 text-blue-700 border-blue-100';
+      default: return 'bg-white text-slate-700 border-transparent';
+    }
+  };
+
+  const getIcon = () => {
+    switch(plan.type) {
+      case 'plan_a': return <Zap className="w-3.5 h-3.5 shrink-0" />;
+      case 'plan_b': return <RefreshCw className="w-3.5 h-3.5 shrink-0" />;
+      case 'security': return <ShieldCheck className="w-3.5 h-3.5 shrink-0" />;
+      case 'food': return <Utensils className="w-3.5 h-3.5 shrink-0" />;
+      case 'flight': return <Bus className="w-3.5 h-3.5 shrink-0" />;
+      default: return <div className="w-1.5 h-1.5 rounded-full bg-sa-green shrink-0 mt-1.5 ml-1"></div>;
+    }
+  };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-      <div 
-        className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-4">
-          <div className="bg-sa-green/10 text-sa-green w-12 h-12 rounded-xl flex flex-col items-center justify-center border border-sa-green/20">
-            <span className="text-[10px] font-bold uppercase">Dia</span>
-            <span className="text-xl font-black leading-none">{plan.day}</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-800 text-lg">{plan.title}</h4>
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-              <Calendar className="w-3 h-3" />
-              {plan.date}
-            </div>
-          </div>
-        </div>
-        {expanded ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+    <div className={`p-3 rounded-xl border flex gap-2.5 mb-2 shadow-sm ${getStyle()}`}>
+      {getIcon()}
+      <div className="text-[11px] leading-relaxed font-bold">
+        {plan.label && <span className="uppercase tracking-tighter mr-1.5">{plan.label}:</span>}
+        {plan.text}
       </div>
-
-      {expanded && (
-        <div className="border-t border-gray-100 p-4 bg-gray-50/50">
-          <div className="relative pl-4 space-y-6 border-l-2 border-gray-200 ml-2">
-            {plan.activities.map((act, idx) => (
-              <div key={idx} className="relative">
-                <div className={`absolute -left-[21px] top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                  act.type === 'food' ? 'bg-orange-400' : act.type === 'transport' ? 'bg-blue-400' : 'bg-green-400'
-                }`}></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-bold text-gray-400 block mb-0.5 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {act.time}
-                    </span>
-                    <h5 className="font-bold text-slate-700 text-sm">{act.activity}</h5>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3" /> {act.location}
-                    </p>
-                    {act.notes && (
-                      <p className="text-[10px] text-gray-400 mt-1 italic bg-white p-1.5 rounded border border-gray-100 inline-block">
-                        <Info className="w-3 h-3 inline mr-1" />
-                        {act.notes}
-                      </p>
-                    )}
-                  </div>
-                  <div className="bg-white p-1.5 rounded-lg border border-gray-100 shadow-sm text-gray-400">
-                    {act.type === 'food' && <Utensils className="w-4 h-4" />}
-                    {act.type === 'sight' && <Camera className="w-4 h-4" />}
-                    {act.type === 'transport' && <Bus className="w-4 h-4" />}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
-            <span className="font-bold uppercase tracking-wide">Orçamento do Dia (Est.)</span>
-            <span className="font-mono font-bold text-slate-700 bg-white px-2 py-1 rounded border border-gray-200">
-              R$ {plan.budget.food + plan.budget.transport + plan.budget.tickets}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
+const DayCard: React.FC<{ plan: DailyPlan, city: string }> = ({ plan, city }) => {
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${plan.map.center[0]},${plan.map.center[1]}`;
+
+  return (
+    <div className="flex gap-4 mb-8">
+      {/* Coluna Lateral de Clima + Sensação Térmica + Mar (Se CPT) */}
+      <div className="flex flex-col items-center shrink-0 w-16">
+        <div className={`w-14 py-2 rounded-2xl flex flex-col items-center shadow-md mb-2 ${plan.isDeparture ? 'bg-sa-gold text-white' : plan.isArrival ? 'bg-sa-blue text-white' : 'bg-blue-50 text-blue-800'}`}>
+          <span className="text-xl font-black leading-none">{plan.day}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">{plan.date}</span>
+        </div>
+        
+        <div className="bg-white border border-slate-100 rounded-2xl p-2 w-14 flex flex-col items-center gap-1 shadow-sm text-slate-400">
+           <span className="text-lg leading-none mb-1">{plan.weather.icon}</span>
+           <div className="flex flex-col items-center leading-none mb-1">
+              <span className="text-xs font-black text-slate-800">{plan.weather.temp}</span>
+              <span className="text-[8px] font-bold">{plan.weather.min}</span>
+           </div>
+           
+           <div className="flex flex-col items-center gap-1 w-full pt-1 border-t border-slate-50 opacity-60">
+              <div className="flex flex-col items-center gap-0.5 mb-1">
+                 <span className="text-[7px] font-black uppercase text-sa-gold leading-none">Sens.</span>
+                 <span className="text-[9px] font-black text-slate-800">{plan.weather.feels}</span>
+              </div>
+              <div className="flex items-center gap-0.5 text-[8px] font-bold">
+                <CloudRain className="w-2.5 h-2.5" /> {plan.weather.rain}
+              </div>
+              <div className="flex items-center gap-0.5 text-[8px] font-bold">
+                <Wind className="w-2.5 h-2.5" /> {plan.weather.wind}
+              </div>
+              {/* Temperatura do Mar Especial APENAS para CPT */}
+              {city === 'CPT' && plan.weather.sea && (
+                <div className="flex items-center gap-0.5 text-[8px] font-black text-sa-blue mt-0.5 border-t border-slate-100 pt-1 w-full justify-center">
+                  <Waves className="w-2.5 h-2.5" /> {plan.weather.sea}
+                </div>
+              )}
+           </div>
+        </div>
+      </div>
+
+      {/* Card de Roteiro */}
+      <div className={`flex-1 rounded-[28px] border-2 bg-white shadow-lg overflow-hidden flex flex-col ${plan.isDeparture || plan.isArrival ? 'border-sa-gold/30' : 'border-slate-50'}`}>
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+             <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{plan.weekday}</span>
+                {plan.isDeparture && <span className="bg-sa-gold text-white text-[8px] px-1.5 py-0.5 rounded font-black uppercase flex items-center gap-1"><Plane className="w-2.5 h-2.5" /> PARTIDA</span>}
+                {plan.isArrival && <span className="bg-sa-blue text-white text-[8px] px-1.5 py-0.5 rounded font-black uppercase flex items-center gap-1"><Navigation className="w-2.5 h-2.5" /> CHEGADA</span>}
+             </div>
+             <ChevronDown className="w-4 h-4 text-slate-300" />
+          </div>
+          <h4 className="text-lg font-display font-black text-slate-800 leading-tight mb-4 uppercase">{plan.title}</h4>
+          
+          <div className="space-y-1">
+             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                <Clock className="w-3.5 h-3.5" /> Roteiro
+             </div>
+             {plan.plans.map((p, idx) => <PlanItem key={idx} plan={p} />)}
+          </div>
+
+          {/* Map Clicável */}
+          <a 
+            href={googleMapsUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="mt-4 block rounded-2xl overflow-hidden border border-slate-100 shadow-inner h-32 relative group active:scale-[0.98] transition-all"
+          >
+            <Map height={128} center={plan.map.center} zoom={plan.map.zoom} mouseWheel={false} touchEvents={false}>
+              {plan.map.markers.map((pos, i) => <Marker key={i} width={30} anchor={pos} color="#007749" />)}
+            </Map>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
+            <div className="absolute top-2 right-2 bg-sa-blue/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[8px] font-black text-white uppercase flex items-center gap-1.5 shadow-lg border border-white/20">
+               <ExternalLink className="w-2.5 h-2.5" /> Abrir no Maps
+            </div>
+            <div className="absolute bottom-2 left-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg text-[8px] font-black text-slate-500 uppercase flex items-center gap-1 shadow-sm">
+               <Navigation className="w-2.5 h-2.5" /> {plan.map.markers.length} Locais
+            </div>
+          </a>
+
+          <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-end">
+             <div>
+                <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                   <DollarSign className="w-3 h-3" /> Estimativa (Casal)
+                </div>
+                <p className="text-[9px] text-sa-green font-bold">{plan.estimateLabel}</p>
+             </div>
+             <div className="text-right">
+                <span className="text-xl font-display font-black text-sa-green leading-none">{plan.estimate}</span>
+                <p className="text-[8px] font-bold text-slate-300 uppercase leading-none mt-1">Uber + Comida + Ingressos</p>
+             </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-50/50 p-4 border-t border-slate-50">
+           <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                 <Shirt className="w-3.5 h-3.5" /> Look & Dicas
+              </span>
+              <Plus className="w-3.5 h-3.5 text-slate-300" />
+           </div>
+           <div className="flex gap-2.5 items-start">
+              <Sparkles className="w-3.5 h-3.5 text-purple-400 mt-0.5" />
+              <p className="text-[10px] text-slate-500 font-bold leading-relaxed">{plan.look}</p>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GoldenTips: React.FC = () => (
+  <div className="bg-white rounded-3xl border-2 border-slate-100 p-5 mb-8 shadow-sm">
+    <div className="flex items-center gap-2 mb-4">
+      <ShieldCheck className="w-5 h-5 text-sa-green" />
+      <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Dicas de Ouro</h3>
+    </div>
+    
+    <div className="space-y-3">
+       <div className="flex gap-3 items-start">
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+             <RefreshCw className="w-4 h-4" />
+          </div>
+          <div>
+             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Uber vs Bolt</h4>
+             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Tenha os dois apps. Em JNB, prefira Uber Black ou Comfort à noite para maior segurança.</p>
+          </div>
+       </div>
+
+       <div className="flex gap-3 items-start">
+          <div className="p-2 bg-sa-gold/10 text-sa-gold rounded-xl">
+             <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div>
+             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Vuvuzela & Clima</h4>
+             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Compre a Vuvuzela só no dia do jogo. Leve casaco leve: chuvas de verão no fim da tarde são comuns.</p>
+          </div>
+       </div>
+    </div>
+  </div>
+);
 
 const GuideList: React.FC = () => {
   const [data, setData] = useState<GuideData>(DEFAULT_GUIDE);
   const [activeCity, setActiveCity] = useState<'CPT' | 'JNB'>('CPT');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cloud First Loading
   useEffect(() => {
     const initData = async () => {
         try {
-            const cloudData = await loadDataFromCloud('guides_v1');
+            const cloudData = await loadDataFromCloud('guides_v2');
             if (cloudData) {
                 setData(cloudData as GuideData);
                 localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(cloudData));
@@ -171,8 +477,6 @@ const GuideList: React.FC = () => {
             }
         } catch (e) {
             console.error("Erro sync roteiro", e);
-            const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
-            if (saved) setData(JSON.parse(saved));
         } finally {
             setIsLoading(false);
         }
@@ -180,64 +484,65 @@ const GuideList: React.FC = () => {
     initData();
   }, []);
 
-  useEffect(() => {
-    if (!isLoading) {
-        // Sync to cloud mainly for backup if data changes
-        const t = setTimeout(() => {
-            syncDataToCloud('guides_v1', data);
-        }, 2000);
-        return () => clearTimeout(t);
-    }
-  }, [data, isLoading]);
-
   if (isLoading) {
       return (
           <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
               <RefreshCw className="w-8 h-8 animate-spin text-sa-green" />
-              <p className="text-xs font-bold uppercase tracking-widest">Carregando Roteiro...</p>
+              <p className="text-xs font-bold uppercase tracking-widest">Carregando Roteiro Premium...</p>
           </div>
       );
   }
 
+  const cityTotal = activeCity === 'CPT' ? 'R$ 1.840' : 'R$ 2.520';
+  const cityLabel = activeCity === 'CPT' ? 'Cidade do Cabo' : 'Joanesburgo';
+
   return (
-    <div className="pb-12">
-      <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
+    <div className="pb-48">
+      {/* Botões de Cidade Estilizados */}
+      <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
         <button
             onClick={() => setActiveCity('CPT')}
-            className={`flex-1 py-3 px-2 rounded-lg text-xs font-bold font-display transition-all ${
-            activeCity === 'CPT' 
-                ? 'bg-white text-blue-800 shadow-sm ring-1 ring-black/5' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`flex-1 flex flex-col items-center py-3 rounded-xl transition-all ${activeCity === 'CPT' ? 'bg-white shadow-md text-sa-blue' : 'text-slate-400'}`}
         >
-            Cidade do Cabo
+            <MapPin className="w-4 h-4 mb-1" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Cidade do Cabo</span>
+            <span className="text-[8px] font-bold opacity-60">26 Jan - 31 Jan</span>
         </button>
         <button
             onClick={() => setActiveCity('JNB')}
-            className={`flex-1 py-3 px-2 rounded-lg text-xs font-bold font-display transition-all ${
-            activeCity === 'JNB' 
-                ? 'bg-white text-yellow-700 shadow-sm ring-1 ring-black/5' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`flex-1 flex flex-col items-center py-3 rounded-xl transition-all ${activeCity === 'JNB' ? 'bg-white shadow-md text-sa-gold' : 'text-slate-400'}`}
         >
-            Joanesburgo
+            <MapPin className="w-4 h-4 mb-1" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Joanesburgo</span>
+            <span className="text-[8px] font-bold opacity-60">01 Fev - 06 Fev</span>
         </button>
       </div>
 
+      <GoldenTips />
+
       <div className="space-y-2 animate-in fade-in">
-        <div className="flex items-center gap-2 mb-4 px-2">
-           <Map className="w-4 h-4 text-gray-400" />
-           <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Roteiro Sugerido</span>
-        </div>
-        
         {data[activeCity].map((plan, i) => (
-           <DayCard key={i} plan={plan} />
+           <DayCard key={i} plan={plan} city={activeCity} />
         ))}
 
         {data[activeCity].length === 0 && (
-            <p className="text-center text-gray-400 text-sm py-8">Nenhum roteiro cadastrado para esta cidade.</p>
+            <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest">Roteiro em preparação...</p>
+            </div>
         )}
       </div>
+
+      {/* City Total Footer - Fixo e com Blur para não obstruir permanentemente */}
+      {data[activeCity].length > 0 && (
+        <div className="fixed bottom-24 left-4 right-4 z-40 animate-in slide-in-from-bottom-5">
+           <div className="bg-slate-900/90 backdrop-blur-md rounded-[32px] p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">Estimativa Total (Média)</span>
+              <h4 className="text-slate-400 text-xs font-bold mb-2">{cityLabel}</h4>
+              <div className="text-4xl font-display font-black text-sa-green tracking-tight mb-1">{cityTotal}</div>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Soma de todos os dias desta cidade</p>
+           </div>
+        </div>
+      )}
     </div>
   );
 };

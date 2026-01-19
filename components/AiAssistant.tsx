@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Send, Bot, WifiOff, Sparkles, User, Loader2, Info } from 'lucide-react';
@@ -10,7 +11,8 @@ interface Message {
   isOfflineResponse?: boolean;
 }
 
-const API_KEY = "AIzaSyD_C_yn_RyBSopY7Tb9aqLW8akkXJR94Vg" || process.env.API_KEY;
+// Fix: The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const API_KEY = process.env.API_KEY;
 
 const OFFLINE_KNOWLEDGE: Record<string, string> = {
   'segurança': `🇿🇦 **Dica de Segurança Offline:**\n\n1. **Uber/Bolt:** Nunca pegue táxi na rua. Use sempre o App. Confira a placa antes de entrar.\n2. **Andar a pé:** Evite, especialmente à noite ou no centro de Joanesburgo. Em Cape Town, Waterfront é seguro, mas cuidado na Long Street.\n3. **Golpes:** Se alguém for muito simpático no caixa eletrônico (ATM), ignore. Não aceite ajuda.\n4. **Emergência:** Disque 112 do celular.`,
@@ -91,6 +93,7 @@ const AiAssistant: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Fix: Corrected the redundant and incorrect messagesEndRef declaration
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,6 +118,7 @@ const AiAssistant: React.FC = () => {
          throw new Error("Offline Mode Trigger");
       }
 
+      // Fix: Creating new GoogleGenAI instance right before the call to ensure fresh configuration.
       const ai = new GoogleGenAI({ apiKey: API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',

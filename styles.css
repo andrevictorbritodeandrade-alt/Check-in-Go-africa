@@ -1,3 +1,4 @@
+
 /* Global font reset */
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -34,6 +35,16 @@ h1, h2, h3, h4, h5, h6, button, input {
 
 .bg-tribal-green {
   background-image: url('https://www.transparenttextures.com/patterns/diagonal-striped-brick.png'), linear-gradient(to bottom, #004d2c, #002d1a);
+  background-blend-mode: overlay;
+}
+
+.bg-tribal-blue {
+  background-image: url('https://www.transparenttextures.com/patterns/fabric-of-squares.png'), linear-gradient(to bottom, #001489, #000a4d);
+  background-blend-mode: overlay;
+}
+
+.bg-tribal-red {
+  background-image: url('https://www.transparenttextures.com/patterns/pinstripe-dark.png'), linear-gradient(to bottom, #E03C31, #8b1e17);
   background-blend-mode: overlay;
 }
 
