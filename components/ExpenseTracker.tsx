@@ -4,9 +4,10 @@ import {
   Trash2, 
   Receipt, 
   CalendarDays,
-  CreditCard
+  CreditCard,
+  RefreshCw
 } from 'lucide-react';
-import { syncDataToCloud } from '../services/firebase';
+import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 import { getRates } from '../services/currencyService';
 import { EXPENSES_STORAGE_KEY } from '../constants';
 import { CurrencyCode } from '../types';
@@ -26,30 +27,47 @@ const ExpenseTracker: React.FC = () => {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<CurrencyCode>('ZAR');
   const [rates, setRates] = useState<{USD: number, BRL: number, ZAR: number} | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      // Load Rates
+      // 1. Load Rates (Parallel)
       const r = await getRates();
       setRates(r);
 
-      // Load Expenses
-      const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
-      if (saved) {
-        setExpenses(JSON.parse(saved));
+      // 2. Load Expenses with Cloud Priority
+      try {
+        const cloudData = await loadDataFromCloud('expenses_log');
+        if (cloudData && cloudData.list) {
+            console.log("Gastos carregados da nuvem.");
+            setExpenses(cloudData.list);
+            localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(cloudData.list));
+        } else {
+            // Fallback Local
+            const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
+            if (saved) setExpenses(JSON.parse(saved));
+        }
+      } catch (e) {
+         console.error("Erro no sync de gastos", e);
+         const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
+         if (saved) setExpenses(JSON.parse(saved));
+      } finally {
+        setIsLoading(false);
       }
     };
     loadData();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
-    // Debounce cloud sync
-    const t = setTimeout(() => {
-      syncDataToCloud('expenses_log', { list: expenses });
-    }, 2000);
-    return () => clearTimeout(t);
-  }, [expenses]);
+    if (!isLoading) {
+        localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+        // Debounce cloud sync
+        const t = setTimeout(() => {
+        syncDataToCloud('expenses_log', { list: expenses });
+        }, 2000);
+        return () => clearTimeout(t);
+    }
+  }, [expenses, isLoading]);
 
   const handleAdd = () => {
     if (!desc.trim() || !amount || !rates) return;
@@ -86,10 +104,19 @@ const ExpenseTracker: React.FC = () => {
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amountInBRL, 0);
 
+  if (isLoading) {
+      return (
+          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
+              <p className="text-xs font-bold uppercase tracking-widest">Buscando histórico...</p>
+          </div>
+      );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header Summary */}
-      <div className="bg-gradient-to-br from-purple-600 to-fuchsia-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-br from-purple-600 to-fuchsia-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden animate-in fade-in">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Receipt className="w-32 h-32" />
         </div>
@@ -164,7 +191,7 @@ const ExpenseTracker: React.FC = () => {
          )}
 
          {expenses.map(item => (
-           <div key={item.id} className="bg-white p-3 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm">
+           <div key={item.id} className="bg-white p-3 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm animate-in slide-in-from-bottom-2">
               <div className="flex items-center gap-3">
                 <div className="bg-purple-50 p-2 rounded-lg text-purple-600">
                   <Receipt className="w-4 h-4" />

@@ -9,9 +9,10 @@ import {
   ChevronUp,
   MapPin,
   Clock,
-  Bus
+  Bus,
+  RefreshCw
 } from 'lucide-react';
-import { syncDataToCloud } from '../services/firebase';
+import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
 export const GUIDE_STORAGE_KEY = 'checkin_go_guides_v1';
 
@@ -154,27 +155,49 @@ const DayCard: React.FC<{ plan: DailyPlan }> = ({ plan }) => {
 const GuideList: React.FC = () => {
   const [data, setData] = useState<GuideData>(DEFAULT_GUIDE);
   const [activeCity, setActiveCity] = useState<'CPT' | 'JNB'>('CPT');
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Cloud First Loading
   useEffect(() => {
-    const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
-    if (saved) {
-      try {
-        setData(JSON.parse(saved));
-      } catch (e) {
-        setData(DEFAULT_GUIDE);
-      }
-    } else {
-      localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(DEFAULT_GUIDE));
-    }
+    const initData = async () => {
+        try {
+            const cloudData = await loadDataFromCloud('guides_v1');
+            if (cloudData) {
+                setData(cloudData as GuideData);
+                localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(cloudData));
+            } else {
+                const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
+                if (saved) setData(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.error("Erro sync roteiro", e);
+            const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
+            if (saved) setData(JSON.parse(saved));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    initData();
   }, []);
 
   useEffect(() => {
-    // Sync to cloud mainly for backup
-    const t = setTimeout(() => {
-        syncDataToCloud('guides_v1', data);
-    }, 2000);
-    return () => clearTimeout(t);
-  }, [data]);
+    if (!isLoading) {
+        // Sync to cloud mainly for backup if data changes
+        const t = setTimeout(() => {
+            syncDataToCloud('guides_v1', data);
+        }, 2000);
+        return () => clearTimeout(t);
+    }
+  }, [data, isLoading]);
+
+  if (isLoading) {
+      return (
+          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <RefreshCw className="w-8 h-8 animate-spin text-sa-green" />
+              <p className="text-xs font-bold uppercase tracking-widest">Carregando Roteiro...</p>
+          </div>
+      );
+  }
 
   return (
     <div className="pb-12">

@@ -16,9 +16,10 @@ import {
   Smartphone,
   FileText,
   Plug,
-  Ear
+  Ear,
+  RefreshCw
 } from 'lucide-react';
-import { syncDataToCloud } from '../services/firebase';
+import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
 type BagType = '23kg' | '10kg' | 'hand';
 type Person = 'André' | 'Marcelly';
@@ -309,29 +310,55 @@ const BagSection: React.FC<{
 const PackingList: React.FC = () => {
   const [activePerson, setActivePerson] = useState<Person>('André');
   const [data, setData] = useState<PackingData | null>(null);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(true);
 
+  // Inicialização Robusta: Nuvem -> Local -> Inicial
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    const initData = async () => {
       try {
-        setData(JSON.parse(saved));
+        setIsLoadingCloud(true);
+        // 1. Tenta buscar backup da nuvem primeiro (Verdade Absoluta)
+        const cloudData = await loadDataFromCloud('packing_list');
+        
+        if (cloudData) {
+          console.log("Backup de mala encontrado na nuvem. Restaurando...");
+          setData(cloudData as PackingData);
+          // Atualiza o local para ficar sincronizado
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+        } else {
+          // 2. Se não tem na nuvem, tenta local
+          const localSaved = localStorage.getItem(STORAGE_KEY);
+          if (localSaved) {
+            setData(JSON.parse(localSaved));
+          } else {
+            // 3. Se não tem lugar nenhum, usa padrão
+            setData(INITIAL_DATA);
+          }
+        }
       } catch (e) {
-        setData(INITIAL_DATA);
+        console.error("Erro ao inicializar mala:", e);
+        // Fallback para local em caso de erro de rede
+        const localSaved = localStorage.getItem(STORAGE_KEY);
+        setData(localSaved ? JSON.parse(localSaved) : INITIAL_DATA);
+      } finally {
+        setIsLoadingCloud(false);
       }
-    } else {
-      setData(INITIAL_DATA);
-    }
+    };
+
+    initData();
   }, []);
 
+  // Sync: Sempre que mudar, salva local e na nuvem
   useEffect(() => {
-    if (data) {
+    if (data && !isLoadingCloud) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      // Debounce para não floodar o banco
       const timeoutId = setTimeout(() => {
         syncDataToCloud('packing_list', data);
       }, 2000);
       return () => clearTimeout(timeoutId);
     }
-  }, [data]);
+  }, [data, isLoadingCloud]);
 
   const handleToggle = (person: Person, bag: BagType, itemId: string) => {
     if (!data) return;
@@ -371,7 +398,12 @@ const PackingList: React.FC = () => {
     setData(newData);
   };
 
-  if (!data) return <div className="p-4 text-center">Carregando lista...</div>;
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-400">
+       <RefreshCw className="w-8 h-8 animate-spin text-sa-green" />
+       <p className="text-xs font-bold uppercase tracking-widest">Sincronizando Malas...</p>
+    </div>
+  );
 
   return (
     <div>
@@ -433,7 +465,7 @@ const PackingList: React.FC = () => {
         <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1">
           <Save className="w-3 h-3" />
           <Cloud className="w-3 h-3" />
-          Salvo no celular e na nuvem
+          {isLoadingCloud ? 'Sincronizando...' : 'Backup automático na nuvem'}
         </p>
       </div>
     </div>

@@ -8,11 +8,12 @@ import {
   Cloud,
   MapPin,
   Receipt,
-  Banknote
+  Banknote,
+  RefreshCw
 } from 'lucide-react';
 import { GUIDE_STORAGE_KEY } from './GuideList';
 import { EXPENSES_STORAGE_KEY } from '../constants';
-import { syncDataToCloud } from '../services/firebase';
+import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
 const toBRL = (val: number) => {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -91,29 +92,51 @@ const FinancialControl: React.FC = () => {
   const [hotelCost, setHotelCost] = useState<number>(0);
   const [busCost, setBusCost] = useState<number>(0);
   
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Totals
   const [totalCPT, setTotalCPT] = useState<number>(0);
   const [totalJNB, setTotalJNB] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
 
-  // Load user inputs
+  // Load user inputs with Cloud Priority
   useEffect(() => {
-    const savedFinance = localStorage.getItem('checkin_go_finance_v1');
-    if (savedFinance) {
-      try {
-        const parsed = JSON.parse(savedFinance);
-        
-        // Migration logic: if old 'balance' exists but 'wallets' doesn't
-        if (parsed.wallets) {
-          setWallets(parsed.wallets);
-        } else if (parsed.balance !== undefined) {
-          setWallets(prev => ({ ...prev, wise: parsed.balance })); // Default old balance to Wise
+    const initData = async () => {
+        try {
+            const cloudData = await loadDataFromCloud('financial_data');
+            
+            if (cloudData) {
+                console.log("Financeiro carregado da nuvem");
+                if (cloudData.wallets) setWallets(cloudData.wallets);
+                if (cloudData.hotelCost) setHotelCost(cloudData.hotelCost);
+                if (cloudData.busCost) setBusCost(cloudData.busCost);
+                // Update Local backup
+                localStorage.setItem('checkin_go_finance_v1', JSON.stringify(cloudData));
+            } else {
+                // Fallback Local
+                const savedFinance = localStorage.getItem('checkin_go_finance_v1');
+                if (savedFinance) {
+                    const parsed = JSON.parse(savedFinance);
+                    if (parsed.wallets) setWallets(parsed.wallets);
+                    else if (parsed.balance !== undefined) setWallets(prev => ({ ...prev, wise: parsed.balance }));
+                    setHotelCost(parsed.hotelCost || 0);
+                    setBusCost(parsed.busCost || 0);
+                }
+            }
+        } catch (e) {
+            console.error("Erro sync financeiro", e);
+            const savedFinance = localStorage.getItem('checkin_go_finance_v1');
+            if (savedFinance) {
+                const parsed = JSON.parse(savedFinance);
+                if (parsed.wallets) setWallets(parsed.wallets);
+                setHotelCost(parsed.hotelCost || 0);
+                setBusCost(parsed.busCost || 0);
+            }
+        } finally {
+            setIsLoading(false);
         }
-
-        setHotelCost(parsed.hotelCost || 0);
-        setBusCost(parsed.busCost || 0);
-      } catch (e) { console.error(e); }
-    }
+    };
+    initData();
   }, []);
 
   // Load Estimated Costs from GuideList
@@ -148,14 +171,17 @@ const FinancialControl: React.FC = () => {
       }
   }, []);
 
+  // Auto Save
   useEffect(() => {
-    const dataToSave = { wallets, hotelCost, busCost };
-    localStorage.setItem('checkin_go_finance_v1', JSON.stringify(dataToSave));
-    const timeoutId = setTimeout(() => {
-      syncDataToCloud('financial_data', dataToSave);
-    }, 2000);
-    return () => clearTimeout(timeoutId);
-  }, [wallets, hotelCost, busCost]);
+    if (!isLoading) {
+        const dataToSave = { wallets, hotelCost, busCost };
+        localStorage.setItem('checkin_go_finance_v1', JSON.stringify(dataToSave));
+        const timeoutId = setTimeout(() => {
+        syncDataToCloud('financial_data', dataToSave);
+        }, 2000);
+        return () => clearTimeout(timeoutId);
+    }
+  }, [wallets, hotelCost, busCost, isLoading]);
 
   // Wallet Handlers
   const updateWallet = (key: keyof Wallets, value: string) => {
@@ -172,11 +198,20 @@ const FinancialControl: React.FC = () => {
   // Real Wallet Balance Logic (Total Available - Expenses)
   const currentWalletBalance = totalBalance - totalExpenses;
 
+  if (isLoading) {
+      return (
+          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+              <p className="text-xs font-bold uppercase tracking-widest">Sincronizando finanças...</p>
+          </div>
+      );
+  }
+
   return (
     <div className="space-y-6">
       
       {/* 1. BALANÇO GERAL (WALLET) */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-1 shadow-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-1 shadow-lg overflow-hidden animate-in fade-in">
         <div className="bg-slate-800/50 p-4 pb-2">
            <div className="flex justify-between items-start mb-4">
              <label className="text-blue-200 text-xs font-bold uppercase tracking-wider block flex items-center gap-2">
