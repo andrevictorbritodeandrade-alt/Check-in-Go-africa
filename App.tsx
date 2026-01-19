@@ -39,7 +39,6 @@ const App: React.FC = () => {
   }, []);
 
   const navigateTo = (id: string) => {
-    // Clima agora é mostrável no card e não clicável
     if (id === 'clima_localizacao') return;
 
     setActiveSectionId(id);
@@ -150,27 +149,42 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] font-sans animate-in fade-in duration-300 relative">
+    <div className="min-h-screen bg-black font-sans animate-in fade-in duration-300 relative">
       <TopBar variant="home" />
       <PWAInstallPrompt />
-      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none bg-[url('https://flagcdn.com/w2560/za.png')] bg-cover bg-center blur-sm"></div>
-      <Header />
-      <main className="max-w-md mx-auto px-4 py-8 relative z-20 pb-12">
-        <div className="grid grid-cols-3 gap-3">
-          {MENU_ITEMS.map((item) => (
-            item.id === 'clima_localizacao' ? (
-              <WeatherCardHome key={item.id} />
-            ) : (
-              <MenuCard key={item.id} {...item} onClick={() => navigateTo(item.id)} />
-            )
-          ))}
-        </div>
-      </main>
-      <footer className="relative z-10 text-center text-[10px] text-white/50 pb-12 font-black font-display tracking-widest uppercase space-y-1 mt-8">
-        <p>África do Sul 🇿🇦</p>
-        <p className="opacity-50 mt-4 font-sans font-medium capitalize tracking-normal">Desenvolvido por: André Brito</p>
-        <p className="pt-2 text-[9px] opacity-30">© 2026 CHECK-IN, GO!</p>
-      </footer>
+      
+      {/* Background Layer Global: Savana Africana */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-[1px] scale-105 opacity-50 contrast-125"
+          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=2068&auto=format&fit=crop")' }}
+        ></div>
+        
+        {/* Overlay para suavizar o fundo em direção ao preto na base, sem cortar o topo */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black"></div>
+      </div>
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header />
+        
+        <main className="max-w-md mx-auto px-4 py-4 pb-12 w-full">
+          <div className="grid grid-cols-3 gap-3">
+            {MENU_ITEMS.map((item) => (
+              item.id === 'clima_localizacao' ? (
+                <WeatherCardHome key={item.id} />
+              ) : (
+                <MenuCard key={item.id} {...item} onClick={() => navigateTo(item.id)} />
+              )
+            ))}
+          </div>
+        </main>
+
+        <footer className="text-center text-[10px] text-white/50 pb-12 font-black font-display tracking-widest uppercase space-y-1 mt-auto">
+          <p>África do Sul 🇿🇦</p>
+          <p className="opacity-50 mt-4 font-sans font-medium capitalize tracking-normal">Desenvolvido por: André Brito</p>
+          <p className="pt-2 text-[9px] opacity-30">© 2026 CHECK-IN, GO!</p>
+        </footer>
+      </div>
     </div>
   );
 };
