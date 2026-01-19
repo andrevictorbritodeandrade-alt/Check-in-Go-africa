@@ -73,11 +73,11 @@ const BUS_DATA: BusTrip[] = [
     lastMile: {
       title: 'Conexão Final: Rodoviária → Hotel',
       origin: 'Terminal Rodoviário Tietê',
-      dest: 'Bristol International Airport Hotel',
+      dest: 'Hotel Domani (Guarulhos)',
       options: [
-        { type: 'UberX', price: 'R$ 38,92', desc: 'Recomendado (4 passageiros)', recommended: true },
-        { type: 'Uber Comfort', price: 'R$ 47,82', desc: 'Carros mais novos e espaçosos' },
-        { type: 'Uber Black', price: 'R$ 68,90', desc: 'Experiência Premium' }
+        { type: 'UberX', price: 'R$ 33,95', desc: 'Valor real conforme reserva (4 passageiros)', recommended: true },
+        { type: 'Uber Comfort', price: 'R$ 41,50', desc: 'Carros mais novos e espaçosos' },
+        { type: 'Uber Black', price: 'R$ 58,90', desc: 'Experiência Premium' }
       ]
     }
   },
