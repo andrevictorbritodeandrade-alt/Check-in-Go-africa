@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
@@ -37,33 +38,38 @@ const STORAGE_KEY = 'checkin_go_packing_list_v3';
 const INITIAL_DATA: PackingData = {
   'André': {
     '23kg': [
-      { id: '1', text: 'Roupas Leves (Algodão/Respirável)', checked: false },
-      { id: '2', text: 'Casaco Corta-vento (Cape Doctor - Vento forte)', checked: false },
-      { id: '3', text: 'Tênis confortável (Caminhadas/Estádio)', checked: false },
-      { id: '4', text: 'Chinelo', checked: false },
-      { id: '5', text: 'Capa de chuva leve (Tempestades JNB)', checked: false },
+      { id: '1', text: 'Camisa Oficial Kaizer Chiefs (Amarela/Preta)', checked: true },
+      { id: '2', text: 'Roupas de Safari (Cores Bege/Verde Musgo)', checked: true },
+      { id: '3', text: 'Chapéu de Abas Largas (Safari)', checked: true },
+      { id: '4', text: 'Tênis Confortável (Trilhas e Estádio)', checked: true },
+      { id: '5', text: 'Casaco Corta-vento (Cape Doctor)', checked: true },
+      { id: '6', text: 'Calça de Sarja / Jeans (Jantares)', checked: false },
+      { id: '7', text: '7 Camisetas de Algodão Básicas', checked: false },
+      { id: '8', text: '10 Pares de Meia e Cuecas', checked: false },
+      { id: '9', text: 'Capa de Chuva Leve (Tempestades JNB)', checked: false },
     ],
     '10kg': [
-      { id: '6', text: 'Protetor Solar + Labial (Sol forte)', checked: false },
-      { id: '7', text: 'Repelente (Safari/Lion Park)', checked: false },
-      { id: '8', text: 'Kit Farmácia (Uso contínuo + Analgésicos)', checked: false },
+      { id: 'a10', text: 'Protetor Solar + Labial (Sol forte)', checked: false },
+      { id: 'a11', text: 'Repelente (Safari/Lion Park)', checked: false },
+      { id: 'a12', text: 'Kit Farmácia (Analgésicos/Curativos)', checked: false },
+      { id: 'a13', text: 'Nécessaire de Banho (Shampoo/Barbeador)', checked: false },
     ],
     'hand': [
-      { id: '9', text: 'Passaporte (+6 meses validade)', checked: false },
-      { id: '10', text: 'CIVP (Vacina Febre Amarela)', checked: false },
-      { id: '11', text: 'Comprovantes impressos (Hotéis/Voos)', checked: false },
-      { id: '12', text: 'Adaptador Tomada Tipo M (3 pinos grandes)', checked: false },
-      { id: '13', text: 'Power Bank (Carregador Portátil)', checked: false },
-      { id: '14', text: 'Protetores Auriculares (Vuvuzelas no Estádio!)', checked: false },
-      { id: '15', text: 'Cartões Wise/Nomad + Rands em espécie', checked: false },
+      { id: 'a14', text: 'Passaporte (+6 meses validade)', checked: false },
+      { id: 'a15', text: 'CIVP (Vacina Febre Amarela)', checked: false },
+      { id: 'a16', text: 'Comprovantes impressos (Hotéis/Voos)', checked: false },
+      { id: 'a17', text: 'Adaptador Tomada Tipo M (3 pinos)', checked: false },
+      { id: 'a18', text: 'Power Bank (Carregador Portátil)', checked: false },
+      { id: 'a19', text: 'Protetores Auriculares (Vuvuzelas!)', checked: false },
+      { id: 'a20', text: 'Cartões Wise/Nomad + Rands espécie', checked: false },
     ]
   },
   'Marcelly': {
     '23kg': [
       { id: 'm1', text: 'Roupas Leves e Frescas', checked: false },
-      { id: 'm2', text: 'Casaco Corta-vento (Essencial Table Mountain)', checked: false },
+      { id: 'm2', text: 'Casaco Corta-vento (Table Mountain)', checked: false },
       { id: 'm3', text: 'Tênis confortável + Chinelo', checked: false },
-      { id: 'm4', text: 'Nécessaire completa (Líquidos grandes)', checked: false },
+      { id: 'm4', text: 'Nécessaire completa (Líquidos)', checked: false },
       { id: 'm5', text: 'Capa de chuva leve', checked: false },
     ],
     '10kg': [
@@ -428,18 +434,7 @@ const PackingList: React.FC = () => {
 
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
         <BagSection 
-          title="Mala de Mão (Documentos & Tech)" 
-          icon={<Briefcase className="w-5 h-5 text-purple-600" />}
-          items={data[activePerson]['hand']}
-          colorClass="border-purple-100"
-          onToggle={(id) => handleToggle(activePerson, 'hand', id)}
-          onDelete={(id) => handleDelete(activePerson, 'hand', id)}
-          onEdit={(id, txt) => handleEdit(activePerson, 'hand', id, txt)}
-          onAdd={(text) => handleAdd(activePerson, 'hand', text)}
-        />
-
-        <BagSection 
-          title="Mala Despachada (Roupas)" 
+          title="Mala Despachada (23kg)" 
           icon={<Luggage className="w-5 h-5 text-blue-600" />}
           items={data[activePerson]['23kg']}
           colorClass="border-blue-100"
@@ -458,6 +453,17 @@ const PackingList: React.FC = () => {
           onDelete={(id) => handleDelete(activePerson, '10kg', id)}
           onEdit={(id, txt) => handleEdit(activePerson, '10kg', id, txt)}
           onAdd={(text) => handleAdd(activePerson, '10kg', text)}
+        />
+
+        <BagSection 
+          title="Mala de Mão (Documentos & Tech)" 
+          icon={<Briefcase className="w-5 h-5 text-purple-600" />}
+          items={data[activePerson]['hand']}
+          colorClass="border-purple-100"
+          onToggle={(id) => handleToggle(activePerson, 'hand', id)}
+          onDelete={(id) => handleDelete(activePerson, 'hand', id)}
+          onEdit={(id, txt) => handleEdit(activePerson, 'hand', id, txt)}
+          onAdd={(text) => handleAdd(activePerson, 'hand', text)}
         />
       </div>
 

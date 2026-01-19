@@ -26,12 +26,18 @@ import {
   Sparkles,
   Waves,
   ThermometerSun,
-  ExternalLink
+  ExternalLink,
+  ClipboardList,
+  Phone,
+  Globe,
+  WifiOff
 } from 'lucide-react';
 import { Map, Marker } from 'pigeon-maps';
 import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
 export const GUIDE_STORAGE_KEY = 'checkin_go_guides_v2';
+
+// --- INTERFACES ---
 
 interface ActivityPlan {
   type: 'plan_a' | 'plan_b' | 'food' | 'security' | 'info' | 'flight';
@@ -46,7 +52,17 @@ interface DayWeather {
   feels: string;
   rain: string;
   wind: string;
-  sea?: string; // Opcional agora para JNB
+  sea?: string;
+}
+
+interface Possibility {
+  id: string;
+  title: string;
+  description: string;
+  estimatedPrice: string;
+  contact: string;
+  location: [number, number];
+  tags: string[];
 }
 
 interface DailyPlan {
@@ -71,7 +87,13 @@ interface DailyPlan {
 interface GuideData {
   CPT: DailyPlan[];
   JNB: DailyPlan[];
+  possibilities: {
+    CPT: Possibility[];
+    JNB: Possibility[];
+  };
 }
+
+// --- DADOS PADRÃO (OFFLINE FIRST) ---
 
 const DEFAULT_GUIDE: GuideData = {
   CPT: [
@@ -281,7 +303,57 @@ const DEFAULT_GUIDE: GuideData = {
       estimateLabel: 'Voo Internacional',
       look: 'Adicione uma dica de look.'
     }
-  ]
+  ],
+  possibilities: {
+    CPT: [
+      {
+        id: 'robben',
+        title: 'Robben Island',
+        description: 'Prisão onde Nelson Mandela ficou. Os ingressos esgotam semanas antes.',
+        estimatedPrice: 'R600 (R$ 190)',
+        contact: 'robben-island.org.za',
+        location: [-33.805, 18.369],
+        tags: ['História', 'Importante']
+      },
+      {
+        id: 'kirstenbosch',
+        title: 'Jardim Botânico Kirstenbosch',
+        description: 'Um dos maiores do mundo. Ideal para piquenique. Veja se tem shows no domingo (Summer Sunset Concerts).',
+        estimatedPrice: 'R220 (R$ 70)',
+        contact: 'webtickets.co.za',
+        location: [-33.987, 18.432],
+        tags: ['Natureza', 'Relax']
+      },
+      {
+        id: 'aquarium',
+        title: 'Two Oceans Aquarium',
+        description: 'No V&A Waterfront. Excelente opção para dias de muito vento ou chuva.',
+        estimatedPrice: 'R250 (R$ 80)',
+        contact: 'aquarium.co.za',
+        location: [-33.907, 18.416],
+        tags: ['Indoor', 'Chuva']
+      },
+      {
+        id: 'oranjezicht',
+        title: 'Oranjezicht City Farm Market',
+        description: 'Mercado gastronômico incrível perto do Waterfront. Apenas Sábados e Domingos de manhã/tarde.',
+        estimatedPrice: 'Entrada Grátis',
+        contact: 'ozcf.co.za',
+        location: [-33.908, 18.411],
+        tags: ['Comida', 'Local']
+      },
+      {
+        id: 'boulders',
+        title: 'Boulders Beach (Pinguins)',
+        description: 'Praia dos Pinguins em Simon\'s Town. Pode ser combinado com o Cabo da Boa Esperança.',
+        estimatedPrice: 'R190 (R$ 60)',
+        contact: 'sanparks.org',
+        location: [-34.197, 18.451],
+        tags: ['Animais', 'Foto']
+      }
+    ],
+    JNB: []
+  }
 };
 
 const PlanItem: React.FC<{ plan: ActivityPlan }> = ({ plan }) => {
@@ -313,6 +385,52 @@ const PlanItem: React.FC<{ plan: ActivityPlan }> = ({ plan }) => {
       <div className="text-[11px] leading-relaxed font-bold">
         {plan.label && <span className="uppercase tracking-tighter mr-1.5">{plan.label}:</span>}
         {plan.text}
+      </div>
+    </div>
+  );
+};
+
+const PossibilityCard: React.FC<{ item: Possibility }> = ({ item }) => {
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${item.location[0]},${item.location[1]}`;
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-4 mb-3 relative overflow-hidden group hover:border-sa-green/50 transition-colors">
+      <div className="flex justify-between items-start mb-2">
+        <h4 className="text-sm font-black text-slate-700 uppercase leading-tight">{item.title}</h4>
+        <a 
+          href={googleMapsUrl}
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="bg-slate-50 text-slate-400 p-1.5 rounded-lg hover:bg-sa-green hover:text-white transition-colors"
+        >
+          <MapIcon className="w-4 h-4" />
+        </a>
+      </div>
+      
+      <p className="text-[11px] text-slate-500 leading-relaxed mb-3">{item.description}</p>
+      
+      <div className="flex flex-wrap gap-2 mb-3">
+        {item.tags.map(tag => (
+          <span key={tag} className="px-2 py-0.5 bg-slate-100 text-[9px] font-bold text-slate-500 rounded uppercase">
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex justify-between items-center gap-2">
+        <div className="flex flex-col">
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+             <DollarSign className="w-3 h-3" /> Valor Estimado
+          </span>
+          <span className="text-[10px] font-bold text-slate-700">{item.estimatedPrice}</span>
+        </div>
+        <div className="w-[1px] h-6 bg-slate-200"></div>
+        <div className="flex flex-col items-end">
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+             <Globe className="w-3 h-3" /> Contato / Site
+          </span>
+          <span className="text-[10px] font-bold text-blue-600 truncate max-w-[120px]">{item.contact}</span>
+        </div>
       </div>
     </div>
   );
@@ -455,6 +573,16 @@ const GoldenTips: React.FC = () => (
              <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Compre a Vuvuzela só no dia do jogo. Leve casaco leve: chuvas de verão no fim da tarde são comuns.</p>
           </div>
        </div>
+       
+       <div className="flex gap-3 items-start">
+          <div className="p-2 bg-red-50 text-red-500 rounded-xl">
+             <WifiOff className="w-4 h-4" />
+          </div>
+          <div>
+             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Modo Híbrido</h4>
+             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Este guia funciona 100% offline. Ideal para consultar durante o voo ou na rua.</p>
+          </div>
+       </div>
     </div>
   </div>
 );
@@ -469,14 +597,37 @@ const GuideList: React.FC = () => {
         try {
             const cloudData = await loadDataFromCloud('guides_v2');
             if (cloudData) {
-                setData(cloudData as GuideData);
-                localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(cloudData));
+                // Merge cloud data with default capabilities to ensure new fields (like possibilities) exist
+                // even if cloud data is older
+                const mergedData = {
+                  ...DEFAULT_GUIDE,
+                  ...cloudData,
+                  possibilities: {
+                    ...DEFAULT_GUIDE.possibilities,
+                    ...(cloudData.possibilities || {})
+                  }
+                };
+                setData(mergedData as GuideData);
+                localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(mergedData));
             } else {
                 const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
-                if (saved) setData(JSON.parse(saved));
+                if (saved) {
+                  const parsedSaved = JSON.parse(saved);
+                   // Ensure backward compatibility if local storage is old
+                   const mergedLocal = {
+                     ...DEFAULT_GUIDE,
+                     ...parsedSaved,
+                     possibilities: parsedSaved.possibilities || DEFAULT_GUIDE.possibilities
+                   };
+                   setData(mergedLocal);
+                } else {
+                  setData(DEFAULT_GUIDE);
+                }
             }
         } catch (e) {
             console.error("Erro sync roteiro", e);
+            // Fallback robusto para DEFAULT_GUIDE em caso de erro crítico
+            setData(DEFAULT_GUIDE);
         } finally {
             setIsLoading(false);
         }
@@ -495,6 +646,7 @@ const GuideList: React.FC = () => {
 
   const cityTotal = activeCity === 'CPT' ? 'R$ 1.840' : 'R$ 2.520';
   const cityLabel = activeCity === 'CPT' ? 'Cidade do Cabo' : 'Joanesburgo';
+  const currentPossibilities = data.possibilities ? data.possibilities[activeCity] : [];
 
   return (
     <div className="pb-48">
@@ -531,6 +683,27 @@ const GuideList: React.FC = () => {
             </div>
         )}
       </div>
+      
+      {/* Seção de Possibilidades / A Verificar */}
+      {currentPossibilities && currentPossibilities.length > 0 && (
+        <div className="mt-12 animate-in slide-in-from-bottom-10">
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="bg-slate-200 p-2 rounded-xl text-slate-500">
+              <ClipboardList className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-700 uppercase tracking-wide">Banco de Ideias & Pendências</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Atrações para verificar preço/disponibilidade</p>
+            </div>
+          </div>
+          
+          <div className="bg-slate-100 rounded-[28px] p-2">
+            {currentPossibilities.map((item) => (
+              <PossibilityCard key={item.id} item={item} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* City Total Footer - Fixo e com Blur para não obstruir permanentemente */}
       {data[activeCity].length > 0 && (
