@@ -1,13 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Use the key provided in the configuration or fall back to env var
-const API_KEY = "AIzaSyD_C_yn_RyBSopY7Tb9aqLW8akkXJR94Vg" || process.env.API_KEY;
+// Initialize the Gemini API
+// Using the modern SDK @google/genai for better performance and Gemini 3 support.
+// process.env.API_KEY is mapped to REACT_APP_GEMINI_API_KEY in vite.config.ts
 
 let ai: GoogleGenAI | null = null;
 
 try {
-  if (API_KEY) {
-    ai = new GoogleGenAI({ apiKey: API_KEY });
+  if (process.env.API_KEY) {
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   } else {
     console.warn("Gemini API Key is missing. AI features will be disabled.");
   }
@@ -18,10 +19,11 @@ try {
 export async function generateText(prompt: string) {
   if (!ai) {
     console.warn("Gemini AI instance is not initialized (Missing API Key).");
-    return "Serviço de IA indisponível no momento. Verifique sua chave de API.";
+    return "Serviço de IA indisponível no momento (Chave de API ausente).";
   }
 
   try {
+    // Using 'gemini-3-flash-preview' for fast and accurate text generation
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt

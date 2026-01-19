@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Banknote, 
-  Bot,
   Bus, 
   ClipboardList,
   Compass,
@@ -11,22 +10,32 @@ import {
   Plane, 
   Receipt,
   Mic2,
-  Star,
   Syringe,
   Wallet,
-  Brain
+  Brain,
+  Car,
+  CloudSun
 } from 'lucide-react';
 import { MenuItem } from './types';
 
-// Matching the textures from the images via custom classes defined in index.html
 export const MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'clima_localizacao',
+    title: 'Clima & Local',
+    icon: <CloudSun className="w-6 h-6 text-sa-gold" />,
+    themeColor: 'blue',
+    gradientClass: 'bg-tribal-dark border-sa-gold/50',
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
+  },
   {
     id: 'cambio',
     title: 'Câmbio',
     icon: <Banknote className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
   },
   {
     id: 'checklist',
@@ -34,7 +43,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <ClipboardList className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#FFB81C'
   },
   {
     id: 'financeiro',
@@ -42,7 +52,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Wallet className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
   },
   {
     id: 'gastos',
@@ -50,15 +61,26 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Receipt className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#FFB81C'
   },
   {
-    id: 'guias', // Re-labeled as Roteiro in UI
+    id: 'uber_bolt',
+    title: 'Uber / Bolt',
+    icon: <Car className="w-6 h-6 text-sa-gold" />,
+    themeColor: 'green',
+    gradientClass: 'bg-tribal-green border-sa-gold/50',
+    textColor: 'text-white',
+    bgColor: '#007749'
+  },
+  {
+    id: 'guias',
     title: 'Roteiro',
     icon: <Map className="w-6 h-6 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#007749'
   },
   {
     id: 'hospedagem',
@@ -66,7 +88,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Hotel className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#FFB81C'
   },
   {
     id: 'tradutor',
@@ -74,15 +97,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Languages className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
-  },
-  {
-    id: 'onibus_star',
-    title: 'Ônibus',
-    icon: <Star className="w-6 h-6 text-sa-gold" />,
-    themeColor: 'gold',
-    gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
   },
   {
     id: 'melhores_destinos',
@@ -90,7 +106,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Compass className="w-6 h-6 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#007749'
   },
   {
     id: 'onibus',
@@ -98,7 +115,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Bus className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
   },
   {
     id: 'soweto_pro',
@@ -106,7 +124,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Mic2 className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#FFB81C'
   },
   {
     id: 'vacinas',
@@ -114,7 +133,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Syringe className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#007749'
   },
   {
     id: 'voos',
@@ -122,7 +142,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Plane className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#FFB81C'
   },
   {
     id: 'ia_assistant',
@@ -130,7 +151,8 @@ export const MENU_ITEMS: MenuItem[] = [
     icon: <Brain className="w-6 h-6 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
-    textColor: 'text-white'
+    textColor: 'text-white',
+    bgColor: '#1a1a1a'
   },
 ];
 

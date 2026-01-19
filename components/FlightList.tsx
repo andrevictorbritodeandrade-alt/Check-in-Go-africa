@@ -4,18 +4,21 @@ import {
   PlaneTakeoff, 
   PlaneLanding, 
   Clock, 
+  MapPin, 
   Users, 
   Luggage, 
   CreditCard, 
   CloudSun, 
   ThermometerSun, 
   Droplets, 
+  Calendar,
   AlertCircle,
   QrCode,
   Info,
   BellRing
 } from 'lucide-react';
 
+// Interfaces for our specific data structure
 interface Passenger {
   name: string;
   ticketNumber?: string;
@@ -39,14 +42,14 @@ interface FlightLeg {
   departure: {
     code: string;
     city: string;
-    time: string;
+    time: string; // Local time
     date: string;
-    brasiliaTime?: string;
+    brasiliaTime?: string; // Calculated manually for display
   };
   arrival: {
     code: string;
     city: string;
-    time: string;
+    time: string; // Local time
     date: string;
     brasiliaTime?: string;
   };
@@ -62,7 +65,7 @@ interface Trip {
   type: 'ida' | 'volta' | 'interno';
   title: string;
   bookingReference: string;
-  provider: string;
+  provider: string; // Decolar or MyTrip
   passengers: Passenger[];
   legs: FlightLeg[];
   baggage: string;
@@ -73,11 +76,13 @@ interface Trip {
   };
 }
 
+// MOCKED WEATHER DATA (Historical Averages for Jan/Feb 2026)
 const WEATHER_SP: WeatherForecast = { tempMax: 29, tempMin: 21, feelsLike: 32, humidity: 78, rainProb: 60, condition: "Chuva de Verão" };
 const WEATHER_JNB: WeatherForecast = { tempMax: 28, tempMin: 16, feelsLike: 29, humidity: 45, rainProb: 30, condition: "Parcialmente Nublado" };
 const WEATHER_CPT: WeatherForecast = { tempMax: 27, tempMin: 18, feelsLike: 27, humidity: 50, rainProb: 10, condition: "Ensolarado e Ventoso" };
 const WEATHER_LAD: WeatherForecast = { tempMax: 31, tempMin: 25, feelsLike: 36, humidity: 80, rainProb: 40, condition: "Quente e Úmido" };
 
+// DATA EXTRACTED FROM PDFS AND SCREENSHOTS
 const TRIPS: Trip[] = [
   {
     id: 'int-ida',
@@ -96,7 +101,7 @@ const TRIPS: Trip[] = [
         airline: 'TAAG Angola Airlines',
         checkInTime: '14:05 (Recomendado)',
         departure: { code: 'GRU', city: 'São Paulo', time: '18:05', date: '25/Jan/26', brasiliaTime: '18:05' },
-        arrival: { code: 'NBJ', city: 'Luanda', time: '06:40', date: '26/Jan/26', brasiliaTime: '02:40' },
+        arrival: { code: 'NBJ', city: 'Luanda', time: '06:40', date: '26/Jan/26', brasiliaTime: '02:40' }, // LAD is UTC+1 (4h ahead of BR)
         duration: '8h 35m',
         layover: 'Conexão: 3h 15m em Luanda (Troca de avião)',
         weatherDeparture: WEATHER_SP,
@@ -106,7 +111,7 @@ const TRIPS: Trip[] = [
         flightNumber: 'DT 577',
         airline: 'TAAG Angola Airlines',
         departure: { code: 'NBJ', city: 'Luanda', time: '09:55', date: '26/Jan/26', brasiliaTime: '05:55' },
-        arrival: { code: 'JNB', city: 'Joanesburgo', time: '14:40', date: '26/Jan/26', brasiliaTime: '09:40' },
+        arrival: { code: 'JNB', city: 'Joanesburgo', time: '14:40', date: '26/Jan/26', brasiliaTime: '09:40' }, // JNB is UTC+2 (5h ahead of BR)
         duration: '3h 45m',
         weatherDeparture: WEATHER_LAD,
         weatherArrival: WEATHER_JNB
@@ -134,7 +139,7 @@ const TRIPS: Trip[] = [
         flightNumber: 'SA 363',
         airline: 'South African Airways (Operado por XQ)',
         checkInTime: '16:45 (2h antes)',
-        departure: { code: 'JNB', city: 'Joanesburgo', time: '18:45', date: '26/Jan/26', brasiliaTime: '13:45' },
+        departure: { code: 'JNB', city: 'Joanesburgo', time: '18:45', date: '26/Jan/26', brasiliaTime: '13:45' }, // SA is UTC+2, BR is UTC-3 (5h diff)
         arrival: { code: 'CPT', city: 'Cidade do Cabo', time: '21:00', date: '26/Jan/26', brasiliaTime: '16:00' },
         duration: '2h 15m',
         weatherDeparture: WEATHER_JNB,
@@ -235,6 +240,7 @@ const FlightList: React.FC = () => {
             'bg-gray-50 border-gray-200'
           }`}
         >
+          {/* Header Card */}
           <div className={`p-4 border-b border-dashed ${
             trip.type === 'ida' ? 'border-blue-200 bg-blue-100/50' : 
             trip.type === 'volta' ? 'border-orange-200 bg-orange-100/50' : 
@@ -257,9 +263,11 @@ const FlightList: React.FC = () => {
             <p className="text-xs text-gray-500 font-medium mt-1 ml-8">Operado por: {trip.provider}</p>
           </div>
 
+          {/* Legs */}
           <div className="p-4 space-y-6">
             {trip.legs.map((leg, idx) => (
               <div key={idx} className="relative pl-4 border-l-2 border-dashed border-gray-300">
+                {/* Decoration Dot */}
                 <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-green-500"></div>
                 
                 <div className="mb-4">
@@ -274,6 +282,7 @@ const FlightList: React.FC = () => {
                   </div>
                 </div>
 
+                {/* VISUAL CHECK-IN ALERT */}
                 <div className="mt-3 mb-5 bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-xl shadow-sm flex items-start gap-3">
                     <div className="bg-amber-100 p-1.5 rounded-full shrink-0 mt-0.5">
                       <BellRing className="w-4 h-4 text-amber-600" />
@@ -288,6 +297,7 @@ const FlightList: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center mb-4">
+                  {/* Departure */}
                   <div className="text-left">
                     <p className="text-2xl font-display font-black text-slate-800">{leg.departure.code}</p>
                     <p className="text-xs font-bold text-gray-600">{leg.departure.time}</p>
@@ -297,10 +307,12 @@ const FlightList: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Icon */}
                   <div className="flex flex-col items-center">
                     <Plane className="w-5 h-5 text-gray-300 rotate-90" />
                   </div>
 
+                  {/* Arrival */}
                   <div className="text-right">
                     <p className="text-2xl font-display font-black text-slate-800">{leg.arrival.code}</p>
                     <p className="text-xs font-bold text-gray-600">{leg.arrival.time}</p>
@@ -322,6 +334,7 @@ const FlightList: React.FC = () => {
                    </div>
                 </div>
 
+                {/* Weather Forecast Section */}
                 {(leg.weatherDeparture || leg.weatherArrival) && (
                   <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
                     {leg.weatherDeparture && <WeatherWidget weather={leg.weatherDeparture} label={`Tempo em ${leg.departure.code}`} />}
@@ -329,6 +342,7 @@ const FlightList: React.FC = () => {
                   </div>
                 )}
 
+                {/* Layover Alert */}
                 {leg.layover && (
                   <div className="mt-3 flex items-start gap-2 bg-blue-50 p-3 rounded-xl border border-blue-100 text-blue-800 text-xs">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -342,6 +356,7 @@ const FlightList: React.FC = () => {
             ))}
           </div>
           
+          {/* QR Code & Check-in Info */}
           <div className="bg-gray-50 p-4 border-t border-gray-200">
              <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-200 shrink-0">
@@ -369,6 +384,7 @@ const FlightList: React.FC = () => {
              </div>
           </div>
 
+          {/* Footer Info */}
           <div className="bg-white p-4 border-t border-gray-100 text-xs space-y-3">
             <div className="flex items-start gap-2">
               <Users className="w-4 h-4 text-gray-400 mt-0.5" />

@@ -25,12 +25,12 @@ const CurrencyInput: React.FC<{
       <input
         type="number"
         inputMode="decimal"
-        step="0.01"
         value={value}
         placeholder="0.00"
         onChange={(e) => onChange(e.target.value, code)}
         className="w-full pl-28 pr-4 pt-4 pb-8 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all text-right font-display text-2xl font-bold text-slate-800 shadow-sm group-hover:bg-white group-hover:border-gray-200 placeholder:text-gray-300"
       />
+      {/* Rate Helper Display inside the input box */}
       <div className="absolute right-4 bottom-2 pointer-events-none flex items-center gap-1">
         <TrendingUp className="w-3 h-3 text-gray-400" />
         <span className="text-[10px] font-bold text-gray-400 tracking-wide font-display bg-gray-100/50 px-1.5 py-0.5 rounded-md">
@@ -46,6 +46,7 @@ const CurrencyConverter: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   
+  // State for input values
   const [values, setValues] = useState({
     BRL: '',
     USD: '',
@@ -68,6 +69,7 @@ const CurrencyConverter: React.FC = () => {
 
   useEffect(() => {
     fetchAndSetRates();
+    // Auto refresh every 5 minutes
     const interval = setInterval(fetchAndSetRates, 300000); 
     return () => clearInterval(interval);
   }, [fetchAndSetRates]);
@@ -75,6 +77,7 @@ const CurrencyConverter: React.FC = () => {
   const handleConversion = (value: string, source: CurrencyCode) => {
     if (!rates) return;
     
+    // Allow empty input
     if (value === '') {
       setValues({ BRL: '', USD: '', ZAR: '' });
       return;
@@ -83,6 +86,7 @@ const CurrencyConverter: React.FC = () => {
     const amount = parseFloat(value);
     if (isNaN(amount)) return;
 
+    // Convert source to USD (Base)
     const amountInUSD = amount / rates[source];
 
     const newValues = {
@@ -94,22 +98,27 @@ const CurrencyConverter: React.FC = () => {
     setValues(newValues);
   };
 
+  // Helper to generate the "market rate" text
   const getRateText = (code: CurrencyCode) => {
     if (!rates) return '...';
     
+    // Format options
     const fmt = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
 
     if (code === 'ZAR') {
+      // Show value of 1 ZAR in BRL
       const val = rates.BRL / rates.ZAR;
       return `1 ZAR ≈ ${val.toLocaleString('pt-BR', fmt)} BRL`;
     }
     
     if (code === 'USD') {
-       const val = rates.BRL; 
+       // Show value of 1 USD in BRL
+       const val = rates.BRL; // Since base is USD
        return `1 USD ≈ ${val.toLocaleString('pt-BR', fmt)} BRL`;
     }
 
     if (code === 'BRL') {
+        // Show value of 1 BRL in ZAR (Buying power)
         const val = rates.ZAR / rates.BRL;
         return `1 BRL ≈ ${val.toLocaleString('pt-BR', fmt)} ZAR`;
     }
@@ -149,7 +158,6 @@ const CurrencyConverter: React.FC = () => {
         </div>
 
         <CurrencyInput 
-          key="zar"
           code="ZAR" 
           name="Rand Sul-Africano" 
           flag="🇿🇦" 
@@ -158,7 +166,6 @@ const CurrencyConverter: React.FC = () => {
           onChange={handleConversion} 
         />
         <CurrencyInput 
-          key="brl"
           code="BRL" 
           name="Real Brasileiro" 
           flag="🇧🇷" 
@@ -167,7 +174,6 @@ const CurrencyConverter: React.FC = () => {
           onChange={handleConversion} 
         />
         <CurrencyInput 
-          key="usd"
           code="USD" 
           name="Dólar Americano" 
           flag="🇺🇸" 

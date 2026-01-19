@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Wifi, WifiOff } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
 
+// --- TYPES FOR WEB SPEECH API ---
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
@@ -33,6 +34,7 @@ interface SpeechRecognition extends EventTarget {
   onerror: ((this: SpeechRecognition, ev: any) => any) | null;
 }
 
+// --- UTILS ---
 function pcmToWav(base64: string, sampleRate: number) {
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
@@ -59,8 +61,6 @@ function pcmToWav(base64: string, sampleRate: number) {
   return URL.createObjectURL(new Blob([wavHeader, bytes], { type: 'audio/wav' }));
 }
 
-const API_KEY = "AIzaSyD_C_yn_RyBSopY7Tb9aqLW8akkXJR94Vg" || process.env.API_KEY;
-
 const SowetoPro: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -72,6 +72,7 @@ const SowetoPro: React.FC = () => {
   const audioQueueRef = useRef<string[]>([]);
   const isPlayingRef = useRef(false);
 
+  // Monitor Connection
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -83,7 +84,9 @@ const SowetoPro: React.FC = () => {
     };
   }, []);
 
+  // Initialize Speech Rec
   useEffect(() => {
+    // Cast window to any to avoid TypeScript conflicts with global declarations in other files
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SR) {
       const recognition = new SR() as SpeechRecognition;
@@ -94,13 +97,14 @@ const SowetoPro: React.FC = () => {
         const text = event.results[event.results.length - 1][0].transcript;
         if (text.trim()) {
           setTranscript(text);
+          // Visual feedback immediately
           setOutput("Processando tradução...");
           await translateAndSpeak(text);
         }
       };
 
       recognition.onend = () => {
-        if (isActive) recognition.start();
+        if (isActive) recognition.start(); // Keep alive
       };
 
       recognitionRef.current = recognition;
@@ -122,7 +126,7 @@ const SowetoPro: React.FC = () => {
   };
 
   const translateAndSpeak = async (text: string) => {
-    if (!API_KEY) {
+    if (!process.env.API_KEY) {
        setOutput("Erro: Chave de API não configurada.");
        return;
     }
@@ -133,7 +137,7 @@ const SowetoPro: React.FC = () => {
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey: API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const srcName = sourceLang === 'en-ZA' ? 'Inglês Sul-Africano' : 'Zulu';
       
       const prompt = `Traduza do ${srcName} para o Português do Brasil. 
@@ -154,12 +158,14 @@ const SowetoPro: React.FC = () => {
         },
       });
 
+      // Extract Audio & Text
       const candidate = response.candidates?.[0]?.content?.parts?.[0];
       
       if (candidate?.inlineData?.data) {
          const audioBlobUrl = pcmToWav(candidate.inlineData.data, 24000);
          queueAudio(audioBlobUrl);
          
+         // If text is returned separately, display it; otherwise indicate audio playback
          const textPart = response.candidates?.[0]?.content?.parts?.find(p => p.text);
          if (textPart?.text) {
             setOutput(textPart.text);
@@ -192,11 +198,14 @@ const SowetoPro: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[500px] gap-8 py-4 relative">
+        
+        {/* Network Status Pill */}
         <div className={`absolute top-0 right-0 text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${isOnline ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'}`}>
             {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
             {isOnline ? 'ONLINE: HYBRID AI' : 'OFFLINE'}
         </div>
 
+        {/* Visualizer Simulation */}
         <div className="flex items-end justify-center gap-1.5 h-24 w-full max-w-xs">
            {[1,2,3,4,5,6,7].map((bar) => (
                <div 
@@ -210,7 +219,9 @@ const SowetoPro: React.FC = () => {
            ))}
         </div>
 
+        {/* Central Control */}
         <div className="relative w-48 h-48 flex items-center justify-center">
+            {/* Pulsing Rings */}
             {isActive && (
                 <>
                   <div className="absolute inset-0 rounded-full border-4 border-sa-gold/30 animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
@@ -233,6 +244,7 @@ const SowetoPro: React.FC = () => {
             </button>
         </div>
 
+        {/* Info Card */}
         <div className="w-full bg-slate-900/50 rounded-3xl p-6 border border-slate-800 backdrop-blur-md shadow-xl">
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-800">
                 <select 
@@ -249,6 +261,7 @@ const SowetoPro: React.FC = () => {
             </div>
             
             <div className="space-y-4">
+                 {/* Transcript Input */}
                  {transcript && (
                     <div className="bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
                         <p className="text-xs text-slate-500 font-mono mb-1">Entrada detectada:</p>
@@ -256,12 +269,14 @@ const SowetoPro: React.FC = () => {
                     </div>
                  )}
 
+                 {/* Output */}
                  <div className="text-slate-200 text-base leading-relaxed font-medium min-h-[40px] animate-in fade-in">
                     {output}
                  </div>
             </div>
         </div>
 
+        {/* Footer Warning */}
         <div className="text-center">
             <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">
                 Soweto Translate Pro v2.0

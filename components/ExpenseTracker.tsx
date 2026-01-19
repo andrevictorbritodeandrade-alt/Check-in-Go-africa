@@ -29,9 +29,11 @@ const ExpenseTracker: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      // Load Rates
       const r = await getRates();
       setRates(r);
 
+      // Load Expenses
       const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
       if (saved) {
         setExpenses(JSON.parse(saved));
@@ -42,6 +44,7 @@ const ExpenseTracker: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+    // Debounce cloud sync
     const t = setTimeout(() => {
       syncDataToCloud('expenses_log', { list: expenses });
     }, 2000);
@@ -54,8 +57,10 @@ const ExpenseTracker: React.FC = () => {
     const val = parseFloat(amount);
     let valInBRL = 0;
 
+    // Conversion Logic (Base USD)
+    // Formula: (Amount / RateSource) * RateTarget
     if (currency === 'BRL') valInBRL = val;
-    else if (currency === 'USD') valInBRL = val * rates.BRL;
+    else if (currency === 'USD') valInBRL = val * rates.BRL; // USD to BRL
     else if (currency === 'ZAR') {
       const valInUSD = val / rates.ZAR;
       valInBRL = valInUSD * rates.BRL;
@@ -83,6 +88,7 @@ const ExpenseTracker: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header Summary */}
       <div className="bg-gradient-to-br from-purple-600 to-fuchsia-700 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Receipt className="w-32 h-32" />
@@ -100,6 +106,7 @@ const ExpenseTracker: React.FC = () => {
         </div>
       </div>
 
+      {/* Input Form */}
       <div className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm">
         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
           <Plus className="w-5 h-5 text-purple-600" /> Novo Gasto
@@ -145,6 +152,7 @@ const ExpenseTracker: React.FC = () => {
         </div>
       </div>
 
+      {/* List */}
       <div className="space-y-3">
          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-2">Histórico</h4>
          

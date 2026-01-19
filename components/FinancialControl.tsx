@@ -18,6 +18,7 @@ const toBRL = (val: number) => {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
+// --- BANK LOGOS COMPONENTS ---
 const WiseLogo = () => (
   <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current text-[#9FE870]" xmlns="http://www.w3.org/2000/svg">
     <path d="M3.555 18.736l3.473-13.473h5.922l-1.077 4.975h3.94l-3.326 8.498h-4.32l.732-3.136H6.676l-.88 3.136H3.555z"/>
@@ -79,6 +80,7 @@ const WalletInput: React.FC<{
 );
 
 const FinancialControl: React.FC = () => {
+  // --- STATE ---
   const [wallets, setWallets] = useState<Wallets>({
     wise: 0,
     nomad: 0,
@@ -89,19 +91,23 @@ const FinancialControl: React.FC = () => {
   const [hotelCost, setHotelCost] = useState<number>(0);
   const [busCost, setBusCost] = useState<number>(0);
   
+  // Totals
   const [totalCPT, setTotalCPT] = useState<number>(0);
   const [totalJNB, setTotalJNB] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
 
+  // Load user inputs
   useEffect(() => {
     const savedFinance = localStorage.getItem('checkin_go_finance_v1');
     if (savedFinance) {
       try {
         const parsed = JSON.parse(savedFinance);
+        
+        // Migration logic: if old 'balance' exists but 'wallets' doesn't
         if (parsed.wallets) {
           setWallets(parsed.wallets);
         } else if (parsed.balance !== undefined) {
-          setWallets(prev => ({ ...prev, wise: parsed.balance })); 
+          setWallets(prev => ({ ...prev, wise: parsed.balance })); // Default old balance to Wise
         }
 
         setHotelCost(parsed.hotelCost || 0);
@@ -110,6 +116,7 @@ const FinancialControl: React.FC = () => {
     }
   }, []);
 
+  // Load Estimated Costs from GuideList
   useEffect(() => {
     const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
     if (savedGuide) {
@@ -129,6 +136,7 @@ const FinancialControl: React.FC = () => {
     }
   }, []);
 
+  // Load Real Expenses
   useEffect(() => {
       const savedExpenses = localStorage.getItem(EXPENSES_STORAGE_KEY);
       if (savedExpenses) {
@@ -149,20 +157,25 @@ const FinancialControl: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [wallets, hotelCost, busCost]);
 
+  // Wallet Handlers
   const updateWallet = (key: keyof Wallets, value: string) => {
     const num = parseFloat(value) || 0;
     setWallets(prev => ({ ...prev, [key]: num }));
   };
 
+  // Calculations
   const totalBalance = wallets.wise + wallets.nomad + wallets.inter + wallets.cash;
   const totalGuideEstimated = totalCPT + totalJNB;
   const totalPending = hotelCost + busCost; 
   const totalEstimatedTripCost = totalPending + totalGuideEstimated;
+  
+  // Real Wallet Balance Logic (Total Available - Expenses)
   const currentWalletBalance = totalBalance - totalExpenses;
 
   return (
     <div className="space-y-6">
       
+      {/* 1. BALANÇO GERAL (WALLET) */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-1 shadow-lg overflow-hidden">
         <div className="bg-slate-800/50 p-4 pb-2">
            <div className="flex justify-between items-start mb-4">
@@ -172,9 +185,9 @@ const FinancialControl: React.FC = () => {
              <Cloud className="w-3 h-3 text-blue-300 opacity-50" />
           </div>
 
+          {/* Wallet Inputs Grid */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <WalletInput 
-              key="wise"
               label="Wise" 
               icon={<WiseLogo />} 
               value={wallets.wise} 
@@ -182,7 +195,6 @@ const FinancialControl: React.FC = () => {
               colorClass="border-[#9FE870]/30"
             />
             <WalletInput 
-              key="nomad"
               label="Nomad" 
               icon={<NomadLogo />} 
               value={wallets.nomad} 
@@ -190,7 +202,6 @@ const FinancialControl: React.FC = () => {
               colorClass="border-[#FFD700]/30"
             />
             <WalletInput 
-              key="inter"
               label="Banco Inter" 
               icon={<InterLogo />} 
               value={wallets.inter} 
@@ -198,7 +209,6 @@ const FinancialControl: React.FC = () => {
               colorClass="border-[#FF7A00]/30"
             />
             <WalletInput 
-              key="cash"
               label="Em Espécie" 
               icon={<CashLogo />} 
               value={wallets.cash} 
@@ -208,6 +218,7 @@ const FinancialControl: React.FC = () => {
           </div>
         </div>
 
+        {/* Totals Summary */}
         <div className="bg-white m-1 rounded-2xl p-4">
           <div className="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
              <span className="text-xs font-bold text-gray-400">Total Acumulado</span>
@@ -230,6 +241,7 @@ const FinancialControl: React.FC = () => {
         </div>
       </div>
 
+       {/* 2. COMPARAÇÃO DE ESTIMATIVAS */}
        <div className="bg-green-50 rounded-3xl border border-green-200 p-5 shadow-sm">
          <h3 className="text-green-800 font-bold flex items-center gap-2 mb-4 font-display">
              <Landmark className="w-5 h-5 text-green-600" />
@@ -272,6 +284,7 @@ const FinancialControl: React.FC = () => {
          </div>
        </div>
 
+      {/* 3. CUSTOS PENDENTES (INPUTS) */}
       <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm">
         <h3 className="text-gray-800 font-bold flex items-center gap-2 mb-4 font-display">
           <TrendingDown className="w-5 h-5 text-orange-500" />

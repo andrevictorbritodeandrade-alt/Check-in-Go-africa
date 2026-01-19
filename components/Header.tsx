@@ -1,9 +1,6 @@
 import React from 'react';
 
 const Header: React.FC = () => {
-  // Imagem da Terra fotográfica ultra-realista (NASA style)
-  const earthImageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Earth_Western_Hemisphere_transparent_background.png/1200px-Earth_Western_Hemisphere_transparent_background.png";
-
   return (
     <div className="relative w-full min-h-[200px] sm:min-h-[260px] flex flex-col items-center justify-center overflow-hidden bg-zinc-950">
       {/* Background Layer: Retratos com alta visibilidade */}
@@ -41,11 +38,19 @@ const Header: React.FC = () => {
             <span className="flex items-center ml-[0.12em]">
               G
               <div className="relative inline-flex items-center justify-center w-[0.92em] h-[0.92em] mx-[-0.03em]">
-                <img 
-                  src={earthImageUrl} 
-                  alt="Terra Ultra Realista 4K" 
-                  className="w-full h-full object-contain drop-shadow-[0_0_60px_rgba(0,119,73,0.6)]"
-                />
+                {/* Ícone da Terra SVG */}
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className="w-full h-full drop-shadow-[0_0_30px_rgba(0,119,73,0.6)] filter brightness-110"
+                >
+                  <circle cx="12" cy="12" r="10" fill="#3b82f6" />
+                  <path 
+                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.5 4.5C15.5 4.5 14 6 13 6C12 6 11 5 11 5V3.5C12.3 3.1 13.9 3.5 15.5 4.5ZM17 12C17 12.5 16.5 13 16 13H15V14.5C15 15.3 14.3 16 13.5 16H11V18H13C13.55 18 14 18.45 14 19V20.2C17.4 19.3 20 16 20 12H17ZM5.5 15C4.6 14.1 4 12.8 4 11.5C4 10.8 4.1 10.2 4.4 9.6L8 13.2V15H5.5ZM9 16.5V14H11V12H15V11H13.5C12.7 11 12 10.3 12 9.5V8H10V6.5C10 5.7 10.7 5 11.5 5H12.6C11.7 4.3 10.6 3.9 9.5 3.7V5C9.5 5.6 9.1 6 8.5 6H6.8C7.5 5 8.4 4.3 9.5 3.7V2.2C5.9 3 3.1 5.8 2.3 9.4L6.6 13.7C6.9 14.8 7.8 15.7 9 16.5Z" 
+                    fill="#16a34a"
+                  />
+                </svg>
               </div>
               !
             </span>

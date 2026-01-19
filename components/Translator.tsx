@@ -13,6 +13,8 @@ import {
 import { GoogleGenAI } from "@google/genai";
 import PronunciationTool from './PronunciationTool';
 
+// --- TYPES & INTERFACES ---
+
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
   resultIndex: number;
@@ -46,12 +48,21 @@ interface SpeechRecognition extends EventTarget {
   onerror: ((this: SpeechRecognition, ev: any) => any) | null;
 }
 
+declare global {
+  interface Window {
+    SpeechRecognition: { new (): SpeechRecognition };
+    webkitSpeechRecognition: { new (): SpeechRecognition };
+  }
+}
+
+// --- OFFLINE PHRASEBOOK DATA ---
+
 type Category = 'alfandega' | 'uber' | 'hotel' | 'restaurante' | 'mercado' | 'direcoes' | 'social' | 'emergencia';
 
 interface Phrase {
   pt: string;
   en: string;
-  context?: string;
+  context?: string; // Dica visual (ex: "Eles perguntam", "Você responde")
   zulu?: string;
   afrikaans?: string;
 }
@@ -181,27 +192,29 @@ const PHRASEBOOK: Record<Category, { title: string, color: string, phrases: Phra
   }
 };
 
-const API_KEY = "AIzaSyD_C_yn_RyBSopY7Tb9aqLW8akkXJR94Vg" || process.env.API_KEY;
+// --- COMPONENT ---
 
 const Translator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'live' | 'pronunciation' | 'phrases'>('live');
   const [isListening, setIsListening] = useState(false);
-  const [mode, setMode] = useState<'pt-to-en' | 'en-to-pt'>('en-to-pt');
+  const [mode, setMode] = useState<'pt-to-en' | 'en-to-pt'>('en-to-pt'); // Default: Listen to them (EN) -> Show me (PT)
   const [transcript, setTranscript] = useState('');
   const [translation, setTranslation] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
+  // Debounce for translation API
   const [debouncedTranscript, setDebouncedTranscript] = useState('');
 
+  // 1. SETUP SPEECH RECOGNITION
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.interimResults = true; // Key for the 0.3s feeling
       
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event) => {
         let finalTranscript = '';
         let interimTranscript = '';
 
@@ -215,16 +228,19 @@ const Translator: React.FC = () => {
         
         const currentText = finalTranscript || interimTranscript;
         setTranscript(currentText);
-        setDebouncedTranscript(currentText);
+        setDebouncedTranscript(currentText); // Trigger translation effect
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event) => {
         console.error("Speech error", event);
         setIsListening(false);
       };
 
       recognition.onend = () => {
+        // Auto-restart if we want continuous listening, but usually better to let user toggle in UI to save battery
         if (isListening) {
+           // recognition.start(); 
+           // For this UX, let's stop and let user press again to avoid infinite loops if permission issues
            setIsListening(false);
         }
       };
@@ -233,6 +249,7 @@ const Translator: React.FC = () => {
     }
   }, [isListening]);
 
+  // 2. TOGGLE LISTENING
   const toggleListening = () => {
     if (!recognitionRef.current) return;
 
@@ -240,6 +257,7 @@ const Translator: React.FC = () => {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
+      // Set language based on mode
       recognitionRef.current.lang = mode === 'pt-to-en' ? 'pt-BR' : 'en-ZA'; 
       setTranscript('');
       setTranslation('');
@@ -248,18 +266,20 @@ const Translator: React.FC = () => {
     }
   };
 
+  // 3. AI TRANSLATION LOGIC (Gemini)
   useEffect(() => {
     const translateText = async () => {
       if (!debouncedTranscript.trim()) return;
 
       setIsTranslating(true);
       try {
-        if (!API_KEY) {
+        if (!process.env.API_KEY) {
           throw new Error("API Key missing");
         }
 
-        const ai = new GoogleGenAI({ apiKey: API_KEY });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
+        // Contextual Prompt
         const sourceLang = mode === 'pt-to-en' ? 'Portuguese' : 'English';
         const targetLang = mode === 'pt-to-en' ? 'English' : 'Portuguese';
         const context = mode === 'pt-to-en' 
@@ -277,21 +297,25 @@ const Translator: React.FC = () => {
         setTranslation(response.text?.trim() || "...");
       } catch (error) {
         console.error("Translation error", error);
+        // Fallback or offline indication handled in UI
       } finally {
         setIsTranslating(false);
       }
     };
 
+    // Small delay to avoid API spam while typing/speaking
     const timeoutId = setTimeout(() => {
         translateText();
-    }, 800);
+    }, 800); // 0.8s buffer + network time ~ closely matches user feel of "thinking"
 
     return () => clearTimeout(timeoutId);
   }, [debouncedTranscript, mode]);
 
 
+  // --- RENDER LIVE TAB ---
   const renderLiveTab = () => (
     <div className="flex flex-col h-[calc(100vh-180px)]">
+        {/* Mode Switcher */}
         <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex mb-4">
             <button
                 onClick={() => { setMode('pt-to-en'); setIsListening(false); setTranscript(''); setTranslation(''); }}
@@ -311,7 +335,9 @@ const Translator: React.FC = () => {
             </button>
         </div>
 
+        {/* Display Area */}
         <div className="flex-1 flex flex-col gap-4 overflow-y-auto mb-4">
+            {/* Input (Transcript) */}
             <div className={`p-4 rounded-2xl border-2 min-h-[120px] flex flex-col ${isListening ? 'border-green-400 bg-green-50' : 'border-gray-100 bg-gray-50'}`}>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                     {isListening ? 'Escutando...' : 'Microfone desligado'}
@@ -321,22 +347,26 @@ const Translator: React.FC = () => {
                 </p>
             </div>
 
+            {/* Output (Translation) */}
             <div className="p-4 rounded-2xl border-2 border-indigo-100 bg-white shadow-sm min-h-[140px] flex flex-col relative">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-2 flex items-center justify-between">
                     Tradução IA
                     {isTranslating && <RefreshCw className="w-3 h-3 animate-spin" />}
                 </span>
                 
+                {/* LARGE TEXT FOR SHOWING */}
                 <p className={`text-2xl sm:text-3xl font-display font-black leading-tight ${mode === 'pt-to-en' ? 'text-indigo-900' : 'text-slate-800'}`}>
                     {translation || <span className="text-gray-200">...</span>}
                 </p>
 
+                {/* Speaker Disabled Warning */}
                 <div className="absolute bottom-3 right-3 opacity-30">
                      <VolumeX className="w-6 h-6 text-gray-400" />
                 </div>
             </div>
         </div>
 
+        {/* Mic Control */}
         <div className="flex justify-center pb-4">
             <button
                 onClick={toggleListening}
@@ -359,6 +389,7 @@ const Translator: React.FC = () => {
     </div>
   );
 
+  // --- RENDER PHRASEBOOK TAB ---
   const renderPhrasebookTab = () => (
     <div className="pb-8 space-y-4">
         <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-2xl text-xs text-yellow-800 mb-4">
@@ -407,6 +438,7 @@ const Translator: React.FC = () => {
 
   return (
     <div>
+      {/* Custom Tab Switcher */}
       <div className="flex bg-gray-100 p-1 rounded-xl mb-6 overflow-x-auto">
         <button
             onClick={() => setActiveTab('live')}

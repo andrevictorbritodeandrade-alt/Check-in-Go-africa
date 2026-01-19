@@ -9,6 +9,7 @@ export interface MenuItem {
   themeColor: ThemeColor;
   gradientClass: string;
   textColor?: string; 
+  bgColor: string; // Nova propriedade para o fundo sólido do card
 }
 
 export interface CurrencyRates {

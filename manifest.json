@@ -1,20 +1,16 @@
 {
-  "short_name": "Check-in Go!",
-  "name": "Check-in Go! África do Sul",
+  "name": "CHECK-IN, GO! África do Sul",
+  "short_name": "Check-In GO!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#007749",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://flagcdn.com/w160/za.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "https://flagcdn.com/w2560/za.png",
-      "type": "image/png",
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
       "sizes": "512x512"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#007749",
-  "background_color": "#ffffff"
+  ]
 }

@@ -1,7 +1,9 @@
 {
-  "name": "Check-in Go!",
+  "name": "CHECK-IN, GO!",
   "description": "A travel companion app for South Africa featuring currency conversion, itinerary management, and travel guides.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "geolocation",
+    "camera"
   ]
 }
