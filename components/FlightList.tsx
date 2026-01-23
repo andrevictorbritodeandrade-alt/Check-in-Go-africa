@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Plane, 
@@ -76,11 +77,11 @@ interface Trip {
   };
 }
 
-// MOCKED WEATHER DATA (Historical Averages for Jan/Feb 2026)
-const WEATHER_SP: WeatherForecast = { tempMax: 29, tempMin: 21, feelsLike: 32, humidity: 78, rainProb: 60, condition: "Chuva de Verão" };
-const WEATHER_JNB: WeatherForecast = { tempMax: 28, tempMin: 16, feelsLike: 29, humidity: 45, rainProb: 30, condition: "Parcialmente Nublado" };
-const WEATHER_CPT: WeatherForecast = { tempMax: 27, tempMin: 18, feelsLike: 27, humidity: 50, rainProb: 10, condition: "Ensolarado e Ventoso" };
-const WEATHER_LAD: WeatherForecast = { tempMax: 31, tempMin: 25, feelsLike: 36, humidity: 80, rainProb: 40, condition: "Quente e Úmido" };
+// MOCKED WEATHER DATA (Updated Historical Averages for Jan/Feb Summer 2026)
+const WEATHER_SP: WeatherForecast = { tempMax: 28, tempMin: 20, feelsLike: 31, humidity: 82, rainProb: 65, condition: "Chuvas de Verão" };
+const WEATHER_JNB: WeatherForecast = { tempMax: 26, tempMin: 15, feelsLike: 28, humidity: 60, rainProb: 45, condition: "Tempestades à Tarde" };
+const WEATHER_CPT: WeatherForecast = { tempMax: 27, tempMin: 16, feelsLike: 27, humidity: 55, rainProb: 5, condition: "Ensolarado e Ventoso" };
+const WEATHER_LAD: WeatherForecast = { tempMax: 32, tempMin: 24, feelsLike: 38, humidity: 85, rainProb: 30, condition: "Muito Quente e Úmido" };
 
 // DATA EXTRACTED FROM PDFS AND SCREENSHOTS
 const TRIPS: Trip[] = [

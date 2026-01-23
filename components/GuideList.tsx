@@ -106,7 +106,7 @@ const DEFAULT_GUIDE: GuideData = {
       date: 'JAN',
       isArrival: true,
       title: 'Chegada e Logística de Desembarque',
-      weather: { icon: '☀️', temp: '26°', min: '18°', feels: '26°', rain: '0%', wind: '25km/h', sea: '15°' },
+      weather: { icon: '☀️', temp: '27°', min: '17°', feels: '28°', rain: '0%', wind: '22km/h', sea: '14°' },
       plans: [
         { type: 'flight', text: 'Conexão Luanda (3h): Área de trânsito. Use Inter/Wise via aproximação. (AOA)' },
         { type: 'info', text: 'Conexão JNB (3h): Saque Rands no Standard Bank ou FNB. Recuse a conversão (Decline Conversion)!' },
@@ -127,7 +127,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'TERÇA',
       date: 'JAN',
       title: 'Montanhas, Praias e Futebol',
-      weather: { icon: '☀️', temp: '29°', min: '19°', feels: '31°', rain: '0%', wind: '35km/h', sea: '14°' },
+      weather: { icon: '🌬️', temp: '28°', min: '18°', feels: '29°', rain: '0%', wind: '38km/h', sea: '15°' },
       plans: [
         { type: 'plan_a', label: 'PLANO A', text: 'Subida de Bondinho (Cableway) na Table Mountain (~R$ 250 casal). Vista panorâmica sem esforço.' },
         { type: 'plan_b', label: 'PLANO B', text: 'Trilha "Platteklip Gorge" (Grátis, mas cansativo, 2h subida) OU Pôr do sol no Signal Hill (Grátis, vá de Uber) com piquenique.' },
@@ -144,7 +144,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'QUARTA',
       date: 'JAN',
       title: 'Vinhos & Chocolate (Confirmado)',
-      weather: { icon: '☀️', temp: '25°', min: '17°', feels: '25°', rain: '15%', wind: '20km/h', sea: '15°' },
+      weather: { icon: '⛅', temp: '25°', min: '16°', feels: '26°', rain: '5%', wind: '18km/h', sea: '15°' },
       plans: [
         { type: 'plan_a', label: 'AGENDADO', text: '10:30: Groot Constantia (Ref: 7whdlc). "Visitors Route + Chocolate" (CONFIRMADO).' },
         { type: 'info', text: 'Inclui: 5 Vinhos harmonizados com 5 Chocolates, entrada nos Museus, Tour na Adega e Taça de Cristal.' },
@@ -162,7 +162,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'QUINTA',
       date: 'JAN',
       title: 'Cores e Sabores',
-      weather: { icon: '☀️', temp: '28°', min: '18°', feels: '30°', rain: '0%', wind: '30km/h', sea: '14°' },
+      weather: { icon: '☀️', temp: '30°', min: '19°', feels: '32°', rain: '0%', wind: '20km/h', sea: '16°' },
       plans: [
         { type: 'info', text: 'Manhã: Bo-Kaap (Casas Coloridas). Grátis para andar e tirar fotos.' },
         { type: 'plan_a', label: 'PLANO A', text: 'Almoço em restaurante típico Malalo no Bo-Kaap.' },
@@ -179,7 +179,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'SEXTA',
       date: 'JAN',
       title: 'Dia Livre / Praias',
-      weather: { icon: '☀️', temp: '30°', min: '20°', feels: '32°', rain: '0%', wind: '15km/h', sea: '16°' },
+      weather: { icon: '☀️', temp: '29°', min: '19°', feels: '30°', rain: '0%', wind: '12km/h', sea: '17°' },
       plans: [
         { type: 'info', text: 'Sugestão: Praias de Clifton ou Camps Bay para curtir o mar gelado.' },
         { type: 'info', text: 'Despedida: Pôr do sol clássico na orla.' }
@@ -195,7 +195,7 @@ const DEFAULT_GUIDE: GuideData = {
       date: 'JAN',
       isDeparture: true,
       title: 'Ida para Joanesburgo',
-      weather: { icon: '☀️', temp: '24°', min: '17°', feels: '23°', rain: '20%', wind: '25km/h', sea: '15°' },
+      weather: { icon: '☀️', temp: '26°', min: '16°', feels: '26°', rain: '5%', wind: '25km/h', sea: '15°' },
       plans: [
         { type: 'info', text: 'Manhã livre. Voo para JNB à noite.' },
         { type: 'plan_b', label: 'PLANO B (Econômico)', text: 'Use o MyCiti Bus para ir ao aeroporto se estiver perto de uma parada.' }
@@ -212,7 +212,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'DOMINGO',
       date: 'FEV',
       title: 'História, Jogo do Povo & Melville',
-      weather: { icon: '⛅', temp: '28°', min: '16°', feels: '29°', rain: '40%', wind: '10km/h' },
+      weather: { icon: '⛅', temp: '28°', min: '16°', feels: '29°', rain: '30%', wind: '12km/h' },
       plans: [
         { type: 'info', text: 'Manhã: Acorde na sua base "84 on Fourth" em Melville.' },
         { type: 'plan_a', label: 'UBER', text: '09:00: Uber para Soweto (Vilakazi St). Visite a Mandela House e Memorial Hector Pieterson.' },
@@ -231,7 +231,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'SEGUNDA',
       date: 'FEV',
       title: 'O Peso da História e o Ouro',
-      weather: { icon: '🌧️', temp: '27°', min: '15°', feels: '28°', rain: '60%', wind: '15km/h' },
+      weather: { icon: '⛈️', temp: '25°', min: '15°', feels: '27°', rain: '70%', wind: '15km/h' },
       plans: [
         { type: 'plan_a', label: 'CULTURA', text: 'Manhã: Apartheid Museum. Reserve pelo menos 3 horas. É profundo e necessário.' },
         { type: 'plan_b', label: 'DIVERSÃO', text: 'Tarde: Gold Reef City (Ao lado). Parque temático numa mina de ouro.' },
@@ -241,14 +241,14 @@ const DEFAULT_GUIDE: GuideData = {
       map: { center: [-26.2366, 28.0069], zoom: 14, markers: [[-26.2366, 28.0069], [-26.2392, 28.0128]] },
       estimate: 'R$ 530',
       estimateLabel: 'Combo Museu + Gold Reef',
-      look: 'Tênis confortável. Anda-se muito.'
+      look: 'Tênis confortável. Anda-se muito. Leve capa de chuva.'
     },
     {
       day: 3,
       weekday: 'TERÇA',
       date: 'FEV',
       title: 'Vista Panorâmica & Red Bus',
-      weather: { icon: '☁️', temp: '29°', min: '16°', feels: '30°', rain: '30%', wind: '12km/h' },
+      weather: { icon: '☁️', temp: '27°', min: '16°', feels: '28°', rain: '40%', wind: '10km/h' },
       plans: [
         { type: 'plan_a', label: 'PASSEIO', text: 'Manhã: Uber até Constitution Hill (Antigo forte/prisão e atual Corte Constitucional).' },
         { type: 'plan_b', label: 'RED BUS', text: 'Tarde: Embarque no "City Sightseeing Red Bus" (Green Tour) na parada da Constitution Hill.' },
@@ -265,7 +265,7 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'QUARTA',
       date: 'FEV',
       title: 'Safari: Leão & Girafa',
-      weather: { icon: '☀️', temp: '30°', min: '17°', feels: '32°', rain: '10%', wind: '10km/h' },
+      weather: { icon: '☀️', temp: '30°', min: '17°', feels: '33°', rain: '10%', wind: '8km/h' },
       plans: [
         { type: 'plan_a', label: 'DIA TODO', text: 'Dia todo: Lion & Safari Park (40 min de Melville).' },
         { type: 'info', text: 'Atividade: Safári Guiado (Guided Game Drive). Veja leões, guepardos e girafas de perto.' },
@@ -274,7 +274,7 @@ const DEFAULT_GUIDE: GuideData = {
       map: { center: [-25.8906, 27.8864], zoom: 12, markers: [[-25.8906, 27.8864]] },
       estimate: 'R$ 700',
       estimateLabel: 'Lion Park Tour',
-      look: 'Cores neutras (Bege/Verde) + Chapéu.'
+      look: 'Cores neutras (Bege/Verde) + Chapéu. Sol forte!'
     },
     {
       day: 5,
@@ -282,7 +282,7 @@ const DEFAULT_GUIDE: GuideData = {
       date: 'FEV',
       isDeparture: true,
       title: 'Compras & Despedida',
-      weather: { icon: '🌧️', temp: '26°', min: '15°', feels: '27°', rain: '50%', wind: '15km/h' },
+      weather: { icon: '⛈️', temp: '24°', min: '15°', feels: '26°', rain: '65%', wind: '14km/h' },
       plans: [
         { type: 'plan_a', label: 'SHOPPING', text: 'Manhã: Sandton City Mall e Nelson Mandela Square. Compras de camisas e presentes.' },
         { type: 'food', text: 'Almoço: Na praça da estátua gigante de Mandela.' },
@@ -301,14 +301,14 @@ const DEFAULT_GUIDE: GuideData = {
       date: 'FEV',
       isDeparture: true,
       title: 'Retorno ao Brasil',
-      weather: { icon: '⛅', temp: '25°', min: '14°', feels: '25°', rain: '45%', wind: '10km/h' },
+      weather: { icon: '⛅', temp: '25°', min: '14°', feels: '25°', rain: '40%', wind: '12km/h' },
       plans: [
         { type: 'flight', text: 'Voo em andamento. Chegada em GRU prevista para a tarde.' }
       ],
       map: { center: [-23.4356, -46.4731], zoom: 10, markers: [[-23.4356, -46.4731]] },
       estimate: 'R$ 0',
       estimateLabel: 'Voo Internacional',
-      look: 'Adicione uma dica de look.'
+      look: 'Confortável.'
     }
   ],
   possibilities: {

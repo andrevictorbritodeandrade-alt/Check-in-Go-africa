@@ -15,7 +15,6 @@ import Translator from './components/Translator';
 import AiAssistant from './components/AiAssistant';
 import AccommodationList from './components/AccommodationList'; 
 import BusList from './components/BusList';
-import SowetoPro from './components/SowetoPro';
 import VaccineCertificate from './components/VaccineCertificate';
 import UberBoltList, { RIDES } from './components/UberBoltList';
 import WeatherLocation from './components/WeatherLocation';
@@ -134,8 +133,6 @@ const App: React.FC = () => {
     switch (id) {
       case 'clima_localizacao':
         return <WeatherLocation />;
-      case 'soweto_pro':
-        return <SowetoPro />;
       case 'ia_assistant':
         return <AiAssistant />;
       case 'tradutor':
@@ -201,7 +198,7 @@ const App: React.FC = () => {
 
   if (activeSectionId) {
     return (
-      <div className={`min-h-screen font-sans animate-in slide-in-from-right duration-300 ease-out ${activeSectionId === 'soweto_pro' ? 'bg-[#0d1117]' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen font-sans animate-in slide-in-from-right duration-300 ease-out bg-gray-50`}>
         <TopBar variant="minimal" />
         <DetailHeader id={activeSectionId} />
         <main className="max-w-md mx-auto px-4 py-6 pb-24">

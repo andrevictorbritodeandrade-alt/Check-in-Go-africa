@@ -129,16 +129,7 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#1a1a1a'
   },
   {
-    id: 'soweto_pro', // POS 12: Verde
-    title: 'Soweto Pro',
-    icon: <Mic2 className="w-12 h-12 text-sa-gold" />,
-    themeColor: 'green',
-    gradientClass: 'bg-tribal-green border-sa-gold/50',
-    textColor: 'text-white',
-    bgColor: '#007749'
-  },
-  {
-    id: 'vacinas', // POS 13: Dourado
+    id: 'vacinas', // POS 12: Dourado
     title: 'Vacinas (CIVP)',
     icon: <Syringe className="w-12 h-12 text-white" />,
     themeColor: 'gold',
@@ -147,7 +138,7 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#FFB81C'
   },
   {
-    id: 'voos', // POS 14: Azul
+    id: 'voos', // POS 13: Azul
     title: 'Voos',
     icon: <Plane className="w-12 h-12 text-sa-gold" />,
     themeColor: 'blue',
@@ -156,7 +147,7 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#001489'
   },
   {
-    id: 'ia_assistant', // POS 15: Vermelho
+    id: 'ia_assistant', // POS 14: Vermelho
     title: 'Guia IA',
     icon: <Brain className="w-12 h-12 text-white" />,
     themeColor: 'red',
