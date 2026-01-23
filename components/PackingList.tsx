@@ -306,7 +306,8 @@ const BagSection: React.FC<{
 
       <div className="p-3">
         <div className="space-y-4">
-          {Object.entries(groupedItems).map(([category, categoryItems]) => (
+          {/* Fix: Explicitly type categoryItems as Item[] to resolve 'unknown' type error in map function */}
+          {Object.entries(groupedItems).map(([category, categoryItems]: [string, Item[]]) => (
             <div key={category} className="animate-in fade-in duration-500">
               <div className="flex items-center gap-2 px-2 mb-2">
                  <Tag className="w-3 h-3 text-slate-300" />

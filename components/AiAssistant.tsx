@@ -11,26 +11,26 @@ interface Message {
   isOfflineResponse?: boolean;
 }
 
-// Fix: The API key must be obtained exclusively from the environment variable process.env.API_KEY.
 const API_KEY = process.env.API_KEY;
 
 const OFFLINE_KNOWLEDGE: Record<string, string> = {
+  'desembarque': `🇿🇦 **Logística de Desembarque (CPT):**\n\n1. **Wi-Fi:** O Aeroporto da Cidade do Cabo tem Wi-Fi grátis. Use para chamar o Uber logo ao pousar.\n2. **Uber/Bolt:** Siga as placas para "E-Hailing" ou "Parkade P1".\n3. **Localização:** O Uber para no **Ground Floor (Térreo)** do estacionamento P1.\n4. **Segurança:** Ignore taxistas no saguão. Vá direto para a garagem.\n5. **Fones QCY:** Use os fones para abafar o ruído da garagem se estiver ansioso.`,
   'segurança': `🇿🇦 **Dica de Segurança Offline:**\n\n1. **Uber/Bolt:** Nunca pegue táxi na rua. Use sempre o App. Confira a placa antes de entrar.\n2. **Andar a pé:** Evite, especialmente à noite ou no centro de Joanesburgo. Em Cape Town, Waterfront é seguro, mas cuidado na Long Street.\n3. **Golpes:** Se alguém for muito simpático no caixa eletrônico (ATM), ignore. Não aceite ajuda.\n4. **Emergência:** Disque 112 do celular.`,
   'agua': `💧 **Água:** A água da torneira na África do Sul é potável e de alta qualidade na maioria das cidades grandes (Cape Town e JNB). Pode beber. Mas, por precaução, se tiver estômago sensível, compre garrafa.`,
   'tomada': `🔌 **Tomadas:** O padrão é o TIPO M (três pinos redondos gigantes). As tomadas brasileiras NÃO entram. Você precisa de um adaptador específico (vende no aeroporto ou mercado) ou um adaptador universal que tenha a entrada "Type M".`,
   'gorjeta': `💸 **Gorjeta (Tips):**\n- Restaurantes: 10% a 15% é o padrão (não incluso na conta).\n- Frentista de posto: R5 a R10.\n- Carregador de mala: R10 a R20 por mala.`,
-  'uber': `🚗 **Uber e Bolt:** Funcionam super bem. Em Cape Town, use a categoria "Uber Black" para jantares à noite para mais segurança, mas o "X" é ok. Em Joanesburgo, sempre espere o carro dentro do estabelecimento (Shopping/Hotel), nunca na calçada.`,
+  'uber': `🚗 **Uber e Bolt:** Funcionam super bem. Em Cape Town, siga para o **Parkade P1 (Ground Floor)**. Use a categoria "Uber Black" para jantares à noite para mais segurança, mas o "X" é ok. Em Joanesburgo, sempre espere o carro dentro do estabelecimento.`,
   'visto': `🛂 **Visto:** Brasileiros NÃO precisam de visto para turismo até 90 dias. Precisa apenas do Passaporte válido e o Certificado Internacional de Vacina contra Febre Amarela.`,
   'vacina': `💉 **Vacina:** O Certificado Internacional de Vacinação (CIVP) contra Febre Amarela é **OBRIGATÓRIO**. Eles pedem antes da imigração. Tenha ele em mãos (o papel amarelo ou o PDF no celular).`,
   'fuso': `⏰ **Fuso Horário:** A África do Sul está geralmente 5 horas à frente do Brasil (Brasília). Se no Brasil são 12h, lá são 17h.`,
   'clima': `☀️ **Clima (Jan/Fev):** É verão!\n- **Cape Town:** Quente, seco e venta MUITO. Leve casaco corta-vento.\n- **Joanesburgo:** Quente, mas com chuvas fortes de final de tarde (tempestades de verão). À noite esfria.`,
-  'mala': `🧳 **Mala:** Lembre-se: Em voos internos pequenos, a bagagem de mão pode ser restrita. Para Safari, prefira roupas neutras (bege, verde musgo). Evite azul escuro (atrai moscas tsé-tsé) e cores neon.`,
+  'mala': `🧳 **Mala:** Lembre-se: Em voos internos pequenos, a bagagem de mão pode ser restrita. Para Safari, prefira roupas neutras (bege, verde musgo). Evite azul escuro (atrai moscas tsé-tsé).`,
   'chip': `📱 **Internet/Chip:** Compre um chip da **Vodacom** ou **MTN** no aeroporto assim que chegar. São as melhores coberturas. Leve o passaporte para registrar o chip (RICA).`,
   'emergencia': `🚨 **Emergência:**\n- Polícia: 10111\n- Ambulância: 10177\n- Emergência Geral (Celular): 112\n- Consulado Brasil (Cape Town): +27 21 421 4040\n- Consulado Brasil (Pretória): +27 12 366 5200`,
-  'comida': `🍖 **Comida Típica:**\n- **Braai:** Churrasco sul-africano.\n- **Bobotie:** Carne moída com especiarias e cobertura de ovo.\n- **Biltong:** Carne seca curada (snack viciante).\n- **Malva Pudding:** Sobremesa quente de damasco.\n- **Vinho:** Pinotage (uva local).`,
-  'lingua': `🗣️ **Língua:** O país tem 12 línguas oficiais! Mas o Inglês é falado por todo mundo no turismo. Aprenda "Sawubona" (Olá em Zulu) para ser simpático.`,
-  'dinheiro': `💰 **Dinheiro:** A moeda é o Rand (ZAR). Quase tudo aceita cartão (aproximação), mas tenha Rands em espécie para gorjetas e mercados de rua. Use o Wise ou Nomad para sacar lá.`,
-  'bebida': `🍺 **Álcool e Regras:**\n\n1. **Beber na Rua:** ⛔ **PROIBIDO!** É ilegal beber em locais públicos (ruas, praias, calçadões). É rigoroso igual ao Chile/EUA. Se beber na praia, a polícia confisca e multa.\n2. **Bolsa Térmica:** Ótima para levar no carro em viagens longas ou manter no hotel, mas não saia caminhando com ela bebendo.\n3. **Cerveja Preta:** Sim! Procure a **Castle Milk Stout**. É a mais famosa, escura, cremosa e levemente adocicada (lembra a Caracu/Malzbier). Tem também Guinness em quase todo lugar.\n4. **Onde Comprar:** Bebida alcoólica só vende em "Bottle Stores" (lojas anexas aos mercados) e tem horário restrito (algumas fecham cedo ou não abrem domingo).`
+  'comida': `🍖 **Comida Típica:**\n- **Braai:** Churrasco sul-africano.\n- **Bobotie:** Carne moída com especiarias.\n- **Biltong:** Carne seca curada.\n- **Vinho:** Pinotage (uva local).`,
+  'lingua': `🗣️ **Língua:** O país tem 12 línguas oficiais! Mas o Inglês é falado por todo mundo no turismo. Aprenda "Sawubona" (Olá em Zulu).`,
+  'dinheiro': `💰 **Dinheiro:** A moeda é o Rand (ZAR). Nos ATMs, escolha **"Decline Conversion"** (Recusar Conversão). Tenha Rands em espécie para gorjetas. Use Wise (Saques) e Inter (Compras aproximação).`,
+  'bebida': `🍺 **Álcool e Regras:**\n\n1. **Beber na Rua:** ⛔ **PROIBIDO!** É ilegal beber em locais públicos (ruas, praias).\n2. **Cerveja Preta:** Procure a **Castle Milk Stout**. É a mais famosa, escura e cremosa (lembra a Caracu).\n3. **Onde Comprar:** Bebida alcoólica só vende em "Bottle Stores" (anexas aos mercados) com horário restrito.`
 };
 
 const findOfflineAnswer = (input: string): string | null => {
@@ -43,6 +43,7 @@ const findOfflineAnswer = (input: string): string | null => {
     }
   }
 
+  if (normalizedInput.includes('pousar') || normalizedInput.includes('chegar') || normalizedInput.includes('aeroporto')) return OFFLINE_KNOWLEDGE['desembarque'];
   if (normalizedInput.includes('seguro') || normalizedInput.includes('perigoso') || normalizedInput.includes('medo')) return OFFLINE_KNOWLEDGE['segurança'];
   if (normalizedInput.includes('beber') || normalizedInput.includes('hidratar')) return OFFLINE_KNOWLEDGE['agua'];
   if (normalizedInput.includes('adaptador') || normalizedInput.includes('carregar')) return OFFLINE_KNOWLEDGE['tomada'];
@@ -56,8 +57,8 @@ const findOfflineAnswer = (input: string): string | null => {
   if (normalizedInput.includes('policia') || normalizedInput.includes('hospital') || normalizedInput.includes('socorro')) return OFFLINE_KNOWLEDGE['emergencia'];
   if (normalizedInput.includes('comer') || normalizedInput.includes('prato') || normalizedInput.includes('jantar')) return OFFLINE_KNOWLEDGE['comida'];
   if (normalizedInput.includes('falar') || normalizedInput.includes('idioma')) return OFFLINE_KNOWLEDGE['lingua'];
-  if (normalizedInput.includes('pagar') || normalizedInput.includes('cartão') || normalizedInput.includes('saque') || normalizedInput.includes('rand')) return OFFLINE_KNOWLEDGE['dinheiro'];
-  if (normalizedInput.includes('cerveja') || normalizedInput.includes('alcool') || normalizedInput.includes('vinho') || normalizedInput.includes('térmica') || normalizedInput.includes('termica') || normalizedInput.includes('rua') || normalizedInput.includes('caracu') || normalizedInput.includes('malzbier')) return OFFLINE_KNOWLEDGE['bebida'];
+  if (normalizedInput.includes('pagar') || normalizedInput.includes('cartão') || normalizedInput.includes('saque') || normalizedInput.includes('rand') || normalizedInput.includes('inter') || normalizedInput.includes('wise')) return OFFLINE_KNOWLEDGE['dinheiro'];
+  if (normalizedInput.includes('cerveja') || normalizedInput.includes('alcool') || normalizedInput.includes('vinho') || normalizedInput.includes('térmica') || normalizedInput.includes('caracu') || normalizedInput.includes('malzbier')) return OFFLINE_KNOWLEDGE['bebida'];
 
   return null;
 };
@@ -67,33 +68,33 @@ Você é o "Braço Direito" do André e da Marcelly em sua viagem para a África
 Sua persona é: Um guia experiente, calmo, super organizado e proativo. Você fala Português do Brasil.
 
 CONTEXTO DA VIAGEM:
-- Viajantes: André (você sabe que ele tem traços de TDAH/Autismo, então seja MUITO estruturado, direto, evite metáforas vagas, dê instruções passo-a-passo claras) e Marcelly.
+- Viajantes: André (TDAH/Autismo, então seja MUITO estruturado, direto, passo-a-passo claras) e Marcelly.
 - Destinos: Cidade do Cabo (26-31 Jan) e Joanesburgo (01-06 Fev).
 - Interesses: Safari, Museus (Mandela), Vinhos, Compras.
 
-SUAS REGRAS DE RESPOSTA:
-1. GERE UMA ÚNICA RESPOSTA COMPLETA. Nunca corte a resposta no meio. Se for um assunto longo (como história), resuma os pontos principais mas conclua o pensamento.
-2. Seja conciso, mas completo. Use Bullet Points para facilitar a leitura.
-3. Antecipe ansiedades. Se perguntarem "Como vou do aeroporto pro hotel?", responda a logística E diga "É seguro, fiquem tranquilos".
-4. Se perguntarem sobre Clima, lembre-se: JNB é alto (1750m) e tem tempestades de verão. CPT venta muito.
-5. Se perguntarem sobre Segurança: Seja realista mas não alarmista. "Uber Black é melhor à noite", "Não ande com celular na mão no centro".
-6. Use emojis para categorizar a informação (🚗 Transporte, 🚨 Segurança, 🍴 Comida).
+DETALHES LOGÍSTICOS CRUCIAL (MANTENHA ISSO EM MENTE):
+- Chegada CPT: Uber para no Parkade P1, Ground Floor (Térreo). Ignore táxis dentro do saguão.
+- Saques: ATMs Standard Bank/FNB. RECUSE a conversão (Decline Conversion) sempre.
+- Dinheiro: Inter Virtual (Aproximação) e Wise Físico (Saques).
 
-Se a internet cair, você (como sistema) não funcionará plenamente, mas o código do app tem um fallback. Se você estiver online, use todo seu conhecimento para ajudar.
+SUAS REGRAS DE RESPOSTA:
+1. GERE UMA ÚNICA RESPOSTA COMPLETA. Nunca corte a resposta no meio.
+2. Seja conciso, mas completo. Use Bullet Points para facilitar a leitura.
+3. Antecipe ansiedades. Se perguntarem "Como vou do aeroporto pro hotel?", responda a logística (Parkade P1) E diga "É seguro, fiquem tranquilos".
+4. Use emojis para categorizar a informação (🚗 Transporte, 🚨 Segurança, 🍴 Comida).
 `;
 
 const AiAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      text: 'Olá André! Sou seu Braço Direito nesta viagem. 🇿🇦\n\nMinha base de dados está carregada com tudo sobre a África do Sul. Pode perguntar sobre logística, segurança, comida, história ou qualquer dúvida que surgir na sua cabeça.\n\nEstou aqui pra tirar o peso das suas costas. O que precisa saber agora?',
+      text: 'Olá André! Sou seu Braço Direito nesta viagem. 🇿🇦\n\nMinha base de dados está carregada com tudo sobre a África do Sul, incluindo os detalhes de desembarque em CPT (Parkade P1) e a estratégia de câmbio.\n\nEstou aqui pra tirar o peso das suas costas. O que precisa saber agora?',
       sender: 'ai',
       timestamp: new Date()
     }
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // Fix: Corrected the redundant and incorrect messagesEndRef declaration
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,7 +119,6 @@ const AiAssistant: React.FC = () => {
          throw new Error("Offline Mode Trigger");
       }
 
-      // Fix: Creating new GoogleGenAI instance right before the call to ensure fresh configuration.
       const ai = new GoogleGenAI({ apiKey: API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -128,7 +128,7 @@ const AiAssistant: React.FC = () => {
         ],
         config: {
             systemInstruction: SYSTEM_INSTRUCTION,
-            maxOutputTokens: 8000, 
+            maxOutputTokens: 2000, 
         }
       });
 
@@ -151,7 +151,7 @@ const AiAssistant: React.FC = () => {
       if (offlineAnswer) {
           replyText = offlineAnswer;
       } else {
-          replyText = "⚠️ **Modo Offline:** Estou sem conexão com minha super inteligência na nuvem agora.\n\nMas não se preocupe! Minha memória de emergência responde sobre: Segurança, Água, Tomadas, Uber, Vistos, Vacinas e Emergências.\n\nTente perguntar algo como 'É seguro?' ou 'Preciso de adaptador?'.";
+          replyText = "⚠️ **Modo Offline:** Estou sem conexão com minha super inteligência agora.\n\nMas não se preocupe! Minha memória de emergência responde sobre: Desembarque no Parkade P1, Segurança, Água, Tomadas, Uber e Câmbio (Decline Conversion).\n\nTente perguntar algo como 'Onde pego o Uber no aeroporto?' ou 'É seguro?'.";
       }
 
       const fallbackMsg: Message = {
@@ -261,7 +261,7 @@ const AiAssistant: React.FC = () => {
          <div className="text-center mt-1">
              <p className="text-[9px] text-gray-400 flex items-center justify-center gap-1">
                  <Info className="w-3 h-3" />
-                 Dica: Tente "Pode beber na rua?" ou "Onde tem cerveja preta?"
+                 Dica: Tente "Onde pego o Uber no aeroporto?"
              </p>
          </div>
       </div>

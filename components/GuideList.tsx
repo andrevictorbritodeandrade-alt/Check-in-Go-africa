@@ -30,7 +30,10 @@ import {
   ClipboardList,
   Phone,
   Globe,
-  WifiOff
+  WifiOff,
+  Headphones,
+  CreditCard,
+  Search
 } from 'lucide-react';
 import { Map, Marker } from 'pigeon-maps';
 import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
@@ -102,18 +105,22 @@ const DEFAULT_GUIDE: GuideData = {
       weekday: 'SEGUNDA',
       date: 'JAN',
       isArrival: true,
-      title: 'Chegada: Conforto ou Economia',
+      title: 'Chegada e Logística de Desembarque',
       weather: { icon: '☀️', temp: '26°', min: '18°', feels: '26°', rain: '0%', wind: '25km/h', sea: '15°' },
       plans: [
-        { type: 'flight', text: 'Chegada JNB -> CPT (Voo Interno)' },
-        { type: 'plan_a', label: 'PLANO A (Conforto)', text: 'Uber direto do aeroporto para o hotel (aprox. R$ 120-150). Rápido e seguro.' },
-        { type: 'plan_b', label: 'PLANO B (Econômico)', text: 'Ônibus MyCiti. Sai do terminal e te deixa no Civic Centre por R$ 30. Seguro e moderno.' },
-        { type: 'food', text: 'Jantar: V&A Waterfront (Turístico) ou Long Street (Agitado/Bares).' }
+        { type: 'flight', text: 'Conexão Luanda (3h): Área de trânsito. Use Inter/Wise via aproximação. (AOA)' },
+        { type: 'info', text: 'Conexão JNB (3h): Saque Rands no Standard Bank ou FNB. Recuse a conversão (Decline Conversion)!' },
+        { type: 'flight', text: 'Chegada CPT (Voo Interno): Use o Wi-Fi grátis do aeroporto para chamar o Uber.' },
+        { type: 'security', text: 'Logística Uber: Siga placas "E-Hailing" -> Parkade P1 (Ground Floor/Térreo). Ignore ofertas de táxi no saguão.' },
+        { type: 'plan_a', label: 'UBER', text: 'Vá direto para o Airbnb Green Point (~R$ 150). Prefira Uber ao Bolt em CPT.' },
+        { type: 'plan_b', label: 'ECONÔMICO', text: 'Ônibus MyCiti. Sai do terminal para o Civic Centre por R$ 30.' },
+        { type: 'info', text: 'Dica Sensorial (QCY): Use os fones no Parkade/Garagem para evitar o barulho.' },
+        { type: 'food', text: 'Jantar: V&A Waterfront (Perto do Airbnb) - Seguro e com muitas opções.' }
       ],
       map: { center: [-33.9145, 18.4239], zoom: 12, markers: [[-33.9145, 18.4239]] },
-      estimate: 'R$ 250',
-      estimateLabel: 'Planos A e B disponíveis',
-      look: 'Aerolook em camadas (vento frio).'
+      estimate: 'R$ 280',
+      estimateLabel: 'Uber Black + Jantar Waterfront',
+      look: 'Aerolook em camadas (Ar gelado no voo, vento fresco no desembarque).'
     },
     {
       day: 27,
@@ -436,7 +443,6 @@ const PossibilityCard: React.FC<{ item: Possibility }> = ({ item }) => {
   );
 };
 
-// Fix: Use React.FC to handle 'key' and prop types correctly
 const DayCard: React.FC<{ plan: DailyPlan; city: string }> = ({ plan, city }) => {
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${plan.map.center[0]},${plan.map.center[1]}`;
 
@@ -557,21 +563,21 @@ const GoldenTips: React.FC = () => (
     <div className="space-y-3">
        <div className="flex gap-3 items-start">
           <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-             <RefreshCw className="w-4 h-4" />
+             <CreditCard className="w-4 h-4" />
           </div>
           <div>
-             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Uber vs Bolt</h4>
-             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Tenha os dois apps. Em JNB, prefira Uber Black ou Comfort à noite para maior segurança.</p>
+             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Estratégia Financeira</h4>
+             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Use Inter (Virtual) via aproximação e Wise (Físico) apenas para saques. Recuse a conversão no ATM!</p>
           </div>
        </div>
 
        <div className="flex gap-3 items-start">
           <div className="p-2 bg-sa-gold/10 text-sa-gold rounded-xl">
-             <AlertTriangle className="w-4 h-4" />
+             <Headphones className="w-4 h-4" />
           </div>
           <div>
-             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Vuvuzela & Clima</h4>
-             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Compre a Vuvuzela só no dia do jogo. Leve casaco leve: chuvas de verão no fim da tarde são comuns.</p>
+             <h4 className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">Conforto Sensorial</h4>
+             <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Use os fones QCY em Luanda e no Parkade de CPT para gerenciar o ruído e ansiedade.</p>
           </div>
        </div>
        
@@ -598,8 +604,6 @@ const GuideList: React.FC = () => {
         try {
             const cloudData = await loadDataFromCloud('guides_v2');
             if (cloudData) {
-                // Merge cloud data with default capabilities to ensure new fields (like possibilities) exist
-                // even if cloud data is older
                 const mergedData = {
                   ...DEFAULT_GUIDE,
                   ...(cloudData as any),
@@ -614,7 +618,6 @@ const GuideList: React.FC = () => {
                 const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
                 if (saved) {
                   const parsedSaved = JSON.parse(saved);
-                   // Ensure backward compatibility if local storage is old
                    const mergedLocal = {
                      ...DEFAULT_GUIDE,
                      ...parsedSaved,
@@ -627,7 +630,6 @@ const GuideList: React.FC = () => {
             }
         } catch (e) {
             console.error("Erro sync roteiro", e);
-            // Fallback robusto para DEFAULT_GUIDE em caso de erro crítico
             setData(DEFAULT_GUIDE);
         } finally {
             setIsLoading(false);
@@ -651,7 +653,6 @@ const GuideList: React.FC = () => {
 
   return (
     <div className="pb-48">
-      {/* Botões de Cidade Estilizados */}
       <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
         <button
             onClick={() => setActiveCity('CPT')}
@@ -674,7 +675,6 @@ const GuideList: React.FC = () => {
       <GoldenTips />
 
       <div className="space-y-2 animate-in fade-in">
-        {/* Fix: Explicitly type activeCity in the .map call to resolve type errors */}
         {(data[activeCity] as DailyPlan[]).map((plan, i) => (
            <DayCard key={i} plan={plan} city={activeCity as string} />
         ))}
@@ -686,7 +686,6 @@ const GuideList: React.FC = () => {
         )}
       </div>
       
-      {/* Seção de Possibilidades / A Verificar */}
       {currentPossibilities && currentPossibilities.length > 0 && (
         <div className="mt-12 animate-in slide-in-from-bottom-10">
           <div className="flex items-center gap-3 mb-4 px-2">
@@ -707,7 +706,6 @@ const GuideList: React.FC = () => {
         </div>
       )}
 
-      {/* City Total Footer - Fixo e com Blur para não obstruir permanentemente */}
       {data[activeCity].length > 0 && (
         <div className="fixed bottom-24 left-4 right-4 z-40 animate-in slide-in-from-bottom-5">
            <div className="bg-slate-900/90 backdrop-blur-md rounded-[32px] p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center">

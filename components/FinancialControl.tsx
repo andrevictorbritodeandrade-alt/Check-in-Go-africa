@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Wallet, 
@@ -9,7 +10,10 @@ import {
   MapPin,
   Receipt,
   Banknote,
-  RefreshCw
+  RefreshCw,
+  AlertCircle,
+  ShieldCheck,
+  CreditCard
 } from 'lucide-react';
 import { GUIDE_STORAGE_KEY } from './GuideList';
 import { EXPENSES_STORAGE_KEY } from '../constants';
@@ -110,10 +114,8 @@ const FinancialControl: React.FC = () => {
                 if (cloudData.wallets) setWallets(cloudData.wallets);
                 if (cloudData.hotelCost) setHotelCost(cloudData.hotelCost);
                 if (cloudData.busCost) setBusCost(cloudData.busCost);
-                // Update Local backup
                 localStorage.setItem('checkin_go_finance_v1', JSON.stringify(cloudData));
             } else {
-                // Fallback Local
                 const savedFinance = localStorage.getItem('checkin_go_finance_v1');
                 if (savedFinance) {
                     const parsed = JSON.parse(savedFinance);
@@ -148,10 +150,10 @@ const FinancialControl: React.FC = () => {
         let cpt = 0;
         let jnb = 0;
         if (parsed.CPT) {
-           parsed.CPT.forEach((day: any) => cpt += (day.budget.food + day.budget.transport + day.budget.tickets));
+           parsed.CPT.forEach((day: any) => cpt += (day.budget?.food + day.budget?.transport + day.budget?.tickets || 0));
         }
         if (parsed.JNB) {
-           parsed.JNB.forEach((day: any) => jnb += (day.budget.food + day.budget.transport + day.budget.tickets));
+           parsed.JNB.forEach((day: any) => jnb += (day.budget?.food + day.budget?.transport + day.budget?.tickets || 0));
         }
         setTotalCPT(cpt);
         setTotalJNB(jnb);
@@ -195,7 +197,6 @@ const FinancialControl: React.FC = () => {
   const totalPending = hotelCost + busCost; 
   const totalEstimatedTripCost = totalPending + totalGuideEstimated;
   
-  // Real Wallet Balance Logic (Total Available - Expenses)
   const currentWalletBalance = totalBalance - totalExpenses;
 
   if (isLoading) {
@@ -220,7 +221,6 @@ const FinancialControl: React.FC = () => {
              <Cloud className="w-3 h-3 text-blue-300 opacity-50" />
           </div>
 
-          {/* Wallet Inputs Grid */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <WalletInput 
               label="Wise" 
@@ -253,7 +253,6 @@ const FinancialControl: React.FC = () => {
           </div>
         </div>
 
-        {/* Totals Summary */}
         <div className="bg-white m-1 rounded-2xl p-4">
           <div className="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
              <span className="text-xs font-bold text-gray-400">Total Acumulado</span>
@@ -274,6 +273,28 @@ const FinancialControl: React.FC = () => {
               </span>
           </div>
         </div>
+      </div>
+
+      {/* DICA DE ESPECIALISTA (Wise/Inter/Decline Conversion) */}
+      <div className="bg-amber-50 rounded-3xl border border-amber-200 p-5 shadow-sm animate-in slide-in-from-right duration-500">
+         <h3 className="text-amber-800 font-bold flex items-center gap-2 mb-3 font-display text-sm uppercase">
+             <ShieldCheck className="w-5 h-5 text-amber-600" />
+             Estratégia de Câmbio
+         </h3>
+         <ul className="space-y-2 text-[11px] text-amber-900 font-medium leading-relaxed">
+            <li className="flex gap-2">
+              <CreditCard className="w-4 h-4 shrink-0 text-amber-600" />
+              <span><strong>Inter Virtual:</strong> Use via Apple/Google Pay para 90% dos pagamentos por aproximação.</span>
+            </li>
+            <li className="flex gap-2">
+              <Banknote className="w-4 h-4 shrink-0 text-amber-600" />
+              <span><strong>Wise Físico:</strong> Exclusivo para saques em Rands.</span>
+            </li>
+            <li className="flex gap-2 bg-white/50 p-2 rounded-xl border border-amber-200">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>No ATM, escolha sempre <strong>"Decline Conversion"</strong> (Recusar Conversão) para economizar até 10%.</span>
+            </li>
+         </ul>
       </div>
 
        {/* 2. COMPARAÇÃO DE ESTIMATIVAS */}
@@ -319,7 +340,6 @@ const FinancialControl: React.FC = () => {
          </div>
        </div>
 
-      {/* 3. CUSTOS PENDENTES (INPUTS) */}
       <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm">
         <h3 className="text-gray-800 font-bold flex items-center gap-2 mb-4 font-display">
           <TrendingDown className="w-5 h-5 text-orange-500" />
