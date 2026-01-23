@@ -436,7 +436,7 @@ const PossibilityCard: React.FC<{ item: Possibility }> = ({ item }) => {
   );
 };
 
-const DayCard: React.FC<{ plan: DailyPlan, city: string }> = ({ plan, city }) => {
+const DayCard = ({ plan, city }: { plan: DailyPlan, city: string }) => {
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${plan.map.center[0]},${plan.map.center[1]}`;
 
   return (
@@ -493,7 +493,8 @@ const DayCard: React.FC<{ plan: DailyPlan, city: string }> = ({ plan, city }) =>
              <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                 <Clock className="w-3.5 h-3.5" /> Roteiro
              </div>
-             {plan.plans.map((p, idx) => <PlanItem key={idx} plan={p} />)}
+             {/* Fix: Explicitly cast plan.plans to ActivityPlan[] to avoid 'unknown' type error */}
+             {(plan.plans as ActivityPlan[]).map((p, idx) => <PlanItem key={idx} plan={p} />)}
           </div>
 
           {/* Map Clicável */}
@@ -601,10 +602,10 @@ const GuideList: React.FC = () => {
                 // even if cloud data is older
                 const mergedData = {
                   ...DEFAULT_GUIDE,
-                  ...cloudData,
+                  ...(cloudData as any),
                   possibilities: {
                     ...DEFAULT_GUIDE.possibilities,
-                    ...(cloudData.possibilities || {})
+                    ...((cloudData as any).possibilities || {})
                   }
                 };
                 setData(mergedData as GuideData);
@@ -619,7 +620,7 @@ const GuideList: React.FC = () => {
                      ...parsedSaved,
                      possibilities: parsedSaved.possibilities || DEFAULT_GUIDE.possibilities
                    };
-                   setData(mergedLocal);
+                   setData(mergedLocal as GuideData);
                 } else {
                   setData(DEFAULT_GUIDE);
                 }
@@ -673,7 +674,8 @@ const GuideList: React.FC = () => {
       <GoldenTips />
 
       <div className="space-y-2 animate-in fade-in">
-        {data[activeCity].map((plan, i) => (
+        {/* Fix: Explicitly cast data[activeCity] to DailyPlan[] to avoid 'unknown' type error */}
+        {(data[activeCity] as DailyPlan[]).map((plan, i) => (
            <DayCard key={i} plan={plan} city={activeCity} />
         ))}
 
@@ -698,7 +700,8 @@ const GuideList: React.FC = () => {
           </div>
           
           <div className="bg-slate-100 rounded-[28px] p-2">
-            {currentPossibilities.map((item) => (
+            {/* Fix: Explicitly cast currentPossibilities to Possibility[] to avoid 'unknown' type error */}
+            {(currentPossibilities as Possibility[]).map((item) => (
               <PossibilityCard key={item.id} item={item} />
             ))}
           </div>

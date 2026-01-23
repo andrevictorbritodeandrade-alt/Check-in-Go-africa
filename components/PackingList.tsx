@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   CheckCircle2, 
   Circle, 
@@ -18,70 +18,98 @@ import {
   FileText,
   Plug,
   Ear,
-  RefreshCw
+  RefreshCw,
+  Tag,
+  Sticker
 } from 'lucide-react';
 import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
 
-type BagType = '23kg' | '10kg' | 'hand';
+type BagType = 'bag23kg' | 'bag10kg' | 'pouch5kg';
 type Person = 'André' | 'Marcelly';
 
 interface Item {
   id: string;
   text: string;
   checked: boolean;
+  category?: string;
 }
 
 type PackingData = Record<Person, Record<BagType, Item[]>>;
 
-const STORAGE_KEY = 'checkin_go_packing_list_v3';
+const STORAGE_KEY = 'checkin_go_packing_list_v5';
+
+// --- DICIONÁRIO DE CATEGORIAS (IA LOCAL) ---
+const CATEGORY_MAP: Record<string, string[]> = {
+  '👕 ROUPAS': ['camisa', 'camiseta', 'calça', 'bermuda', 'short', 'cueca', 'meia', 'casaco', 'jaqueta', 'vestido', 'saia', 'biquíni', 'sunga', 'moletom', 'agasalho', 'roupa', 'blusa', 'pijama'],
+  '👟 CALÇADOS': ['tênis', 'sapato', 'chinelo', 'sandália', 'bota', 'crocs', 'pantufa'],
+  '🧴 HIGIENE & SAÚDE': ['escova', 'pasta', 'shampoo', 'condicionador', 'sabonete', 'desodorante', 'perfume', 'protetor', 'repelente', 'remédio', 'farmácia', 'curativo', 'band-aid', 'nécessaire', 'maquiagem', 'batom', 'hidratante', 'barbeador', 'lâmina'],
+  '🛂 DOCUMENTOS': ['passaporte', 'civp', 'vacina', 'rg', 'cpf', 'visto', 'reserva', 'comprovante', 'seguro', 'cartão', 'dinheiro', 'rand', 'dólar', 'wallet', 'carteira'],
+  '🔌 ELETRÔNICOS': ['carregador', 'cabo', 'celular', 'power bank', 'adaptador', 'fone', 'headset', 'câmera', 'go pro', 'laptop', 'tablet', 'kindle'],
+  '🎒 ACESSÓRIOS': ['chapéu', 'boné', 'óculos', 'relógio', 'joia', 'brinco', 'colar', 'pulseira', 'vuvuzela', 'protetor auricular', 'tampão'],
+  '📦 DIVERSOS': [] // Fallback
+};
+
+const identifyCategory = (text: string): string => {
+  const normalized = text.toLowerCase();
+  for (const [category, keywords] of Object.entries(CATEGORY_MAP)) {
+    if (keywords.some(k => normalized.includes(k))) {
+      return category;
+    }
+  }
+  return '📦 DIVERSOS';
+};
+
+const sortItems = (items: Item[]) => {
+  return [...items].sort((a, b) => a.text.localeCompare(b.text, 'pt-BR', { sensitivity: 'base', numeric: true }));
+};
 
 const INITIAL_DATA: PackingData = {
   'André': {
-    '23kg': [
-      { id: '1', text: 'Camisa Oficial Kaizer Chiefs (Amarela/Preta)', checked: true },
-      { id: '2', text: 'Roupas de Safari (Cores Bege/Verde Musgo)', checked: true },
-      { id: '3', text: 'Chapéu de Abas Largas (Safari)', checked: true },
-      { id: '4', text: 'Tênis Confortável (Trilhas e Estádio)', checked: true },
-      { id: '5', text: 'Casaco Corta-vento (Cape Doctor)', checked: true },
-      { id: '6', text: 'Calça de Sarja / Jeans (Jantares)', checked: false },
-      { id: '7', text: '7 Camisetas de Algodão Básicas', checked: false },
-      { id: '8', text: '10 Pares de Meia e Cuecas', checked: false },
-      { id: '9', text: 'Capa de Chuva Leve (Tempestades JNB)', checked: false },
+    'bag23kg': [
+      { id: 'a1', text: '10 Pares de Meia e Cuecas', checked: false },
+      { id: 'a2', text: '7 Camisetas de Algodão Básicas', checked: false },
+      { id: 'a3', text: 'Calça de Sarja / Jeans (Jantares)', checked: false },
+      { id: 'a4', text: 'Camisa Oficial Kaizer Chiefs (Amarela/Preta)', checked: true },
+      { id: 'a5', text: 'Capa de Chuva Leve (Tempestades JNB)', checked: false },
+      { id: 'a6', text: 'Casaco Corta-vento (Cape Doctor)', checked: true },
+      { id: 'a7', text: 'Chapéu de Abas Largas (Safari)', checked: true },
+      { id: 'a8', text: 'Roupas de Safari (Cores Bege/Verde Musgo)', checked: true },
+      { id: 'a9', text: 'Tênis Confortável (Trilhas e Estádio)', checked: true },
     ],
-    '10kg': [
-      { id: 'a10', text: 'Protetor Solar + Labial (Sol forte)', checked: false },
-      { id: 'a11', text: 'Repelente (Safari/Lion Park)', checked: false },
-      { id: 'a12', text: 'Kit Farmácia (Analgésicos/Curativos)', checked: false },
-      { id: 'a13', text: 'Nécessaire de Banho (Shampoo/Barbeador)', checked: false },
+    'bag10kg': [
+      { id: 'a10', text: 'Kit Farmácia (Analgésicos/Curativos)', checked: false },
+      { id: 'a11', text: 'Nécessaire de Banho (Shampoo/Barbeador)', checked: false },
+      { id: 'a12', text: 'Protetor Solar + Labial (Sol forte)', checked: false },
+      { id: 'a13', text: 'Repelente (Safari/Lion Park)', checked: false },
     ],
-    'hand': [
-      { id: 'a14', text: 'Passaporte (+6 meses validade)', checked: false },
-      { id: 'a15', text: 'CIVP (Vacina Febre Amarela)', checked: false },
-      { id: 'a16', text: 'Comprovantes impressos (Hotéis/Voos)', checked: false },
-      { id: 'a17', text: 'Adaptador Tomada Tipo M (3 pinos)', checked: false },
-      { id: 'a18', text: 'Power Bank (Carregador Portátil)', checked: false },
-      { id: 'a19', text: 'Protetores Auriculares (Vuvuzelas!)', checked: false },
-      { id: 'a20', text: 'Cartões Wise/Nomad + Rands espécie', checked: false },
+    'pouch5kg': [
+      { id: 'a14', text: 'Adaptador Tomada Tipo M (3 pinos)', checked: false },
+      { id: 'a15', text: 'Cartões Wise/Nomad + Rands espécie', checked: false },
+      { id: 'a16', text: 'CIVP (Vacina Febre Amarela)', checked: false },
+      { id: 'a17', text: 'Comprovantes impressos (Hotéis/Voos)', checked: false },
+      { id: 'a18', text: 'Passaporte (+6 meses validade)', checked: false },
+      { id: 'a19', text: 'Power Bank (Carregador Portátil)', checked: false },
+      { id: 'a20', text: 'Protetores Auriculares (Vuvuzelas!)', checked: false },
     ]
   },
   'Marcelly': {
-    '23kg': [
-      { id: 'm1', text: 'Roupas Leves e Frescas', checked: false },
+    'bag23kg': [
+      { id: 'm1', text: 'Capa de chuva leve', checked: false },
       { id: 'm2', text: 'Casaco Corta-vento (Table Mountain)', checked: false },
-      { id: 'm3', text: 'Tênis confortável + Chinelo', checked: false },
-      { id: 'm4', text: 'Nécessaire completa (Líquidos)', checked: false },
-      { id: 'm5', text: 'Capa de chuva leve', checked: false },
+      { id: 'm3', text: 'Nécessaire completa (Líquidos)', checked: false },
+      { id: 'm4', text: 'Roupas Leves e Frescas', checked: false },
+      { id: 'm5', text: 'Tênis confortável + Chinelo', checked: false },
     ],
-    '10kg': [
-      { id: 'm6', text: 'Protetor Solar + Hidratante Labial', checked: false },
-      { id: 'm7', text: 'Repelente Forte', checked: false },
-      { id: 'm8', text: 'Maquiagem básica', checked: false },
+    'bag10kg': [
+      { id: 'm6', text: 'Maquiagem básica', checked: false },
+      { id: 'm7', text: 'Protetor Solar + Hidratante Labial', checked: false },
+      { id: 'm8', text: 'Repelente Forte', checked: false },
     ],
-    'hand': [
-      { id: 'm9', text: 'Passaporte (+6 meses validade)', checked: false },
+    'pouch5kg': [
+      { id: 'm9', text: 'Adaptador Universal / Tipo M', checked: false },
       { id: 'm10', text: 'CIVP (Vacina Febre Amarela)', checked: false },
       { id: 'm11', text: 'Joias/Bijuterias (Sempre na mão)', checked: false },
-      { id: 'm12', text: 'Adaptador Universal / Tipo M', checked: false },
+      { id: 'm12', text: 'Passaporte (+6 meses validade)', checked: false },
       { id: 'm13', text: 'Power Bank + Cabos', checked: false },
       { id: 'm14', text: 'Protetores Auriculares (Anti-Vuvuzela)', checked: false },
     ]
@@ -117,25 +145,6 @@ const PackingTips: React.FC = () => (
                     <strong>Estádios:</strong> Leve o mínimo. Revistas são demoradas. Garrafas de vidro e guarda-chuvas grandes são proibidos.
                 </p>
             </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-             <div className="bg-gray-100 border border-gray-200 rounded-2xl p-3 shadow-sm">
-                <h3 className="text-gray-700 font-bold flex items-center gap-2 mb-1 font-display text-[10px] uppercase tracking-wide">
-                    <Plug className="w-3 h-3" /> Tomada Tipo M
-                </h3>
-                <p className="text-[10px] text-gray-600 leading-tight">
-                    A África do Sul usa 3 pinos redondos gigantes. Compre um adaptador universal ou específico lá.
-                </p>
-             </div>
-             <div className="bg-orange-50 border border-orange-100 rounded-2xl p-3 shadow-sm">
-                <h3 className="text-orange-700 font-bold flex items-center gap-2 mb-1 font-display text-[10px] uppercase tracking-wide">
-                    <Ear className="w-3 h-3" /> Vuvuzelas
-                </h3>
-                <p className="text-[10px] text-orange-600 leading-tight">
-                    Leve tampões de ouvido! O barulho no estádio é ensurdecedor e constante.
-                </p>
-             </div>
         </div>
     </div>
 );
@@ -209,20 +218,18 @@ const PackingListItem: React.FC<{
         {item.text}
       </span>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         <button 
           onClick={() => setIsEditing(true)}
-          className="text-gray-300 hover:text-blue-500 p-1.5 rounded-md hover:bg-blue-50 transition-colors"
-          title="Editar"
+          className="text-gray-300 hover:text-blue-500 p-1 rounded-md"
         >
-          <Pencil className="w-4 h-4" />
+          <Pencil className="w-3.5 h-3.5" />
         </button>
         <button 
           onClick={() => onDelete(item.id)}
-          className="text-gray-300 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition-colors"
-          title="Excluir"
+          className="text-gray-300 hover:text-red-500 p-1 rounded-md"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
@@ -252,12 +259,33 @@ const BagSection: React.FC<{
     if (e.key === 'Enter') handleAdd();
   };
 
+  // --- AGRUPAMENTO E ORDENAÇÃO ---
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, Item[]> = {};
+    items.forEach(item => {
+      const cat = identifyCategory(item.text);
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+
+    // Ordena as categorias alfabeticamente
+    const sortedCategories = Object.keys(groups).sort();
+    
+    // Cria um novo objeto ordenado
+    const sortedGroups: Record<string, Item[]> = {};
+    sortedCategories.forEach(cat => {
+      sortedGroups[cat] = sortItems(groups[cat]);
+    });
+    
+    return sortedGroups;
+  }, [items]);
+
   const completedCount = items.filter(i => i.checked).length;
   const totalCount = items.length;
   const progress = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
 
   return (
-    <div className={`mb-6 rounded-2xl border-2 overflow-hidden ${colorClass} bg-white`}>
+    <div className={`mb-6 rounded-2xl border-2 overflow-hidden ${colorClass} bg-white shadow-sm`}>
       <div className={`p-3 flex items-center justify-between border-b border-gray-100 bg-opacity-30 ${colorClass.replace('border-', 'bg-')}`}>
         <div className="flex items-center gap-2">
           {icon}
@@ -276,28 +304,40 @@ const BagSection: React.FC<{
       </div>
 
       <div className="p-3">
-        <div className="space-y-1">
-          {items.map(item => (
-            <PackingListItem
-              key={item.id}
-              item={item}
-              onToggle={onToggle}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
+        <div className="space-y-4">
+          {Object.entries(groupedItems).map(([category, categoryItems]) => (
+            <div key={category} className="animate-in fade-in duration-500">
+              <div className="flex items-center gap-2 px-2 mb-2">
+                 <Tag className="w-3 h-3 text-slate-300" />
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span>
+                 <div className="h-[1px] flex-1 bg-slate-50"></div>
+              </div>
+              <div className="space-y-1">
+                {categoryItems.map(item => (
+                  <PackingListItem
+                    key={item.id}
+                    item={item}
+                    onToggle={onToggle}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
+          
           {items.length === 0 && (
             <p className="text-center text-gray-300 text-xs italic py-2">Nenhum item nesta lista.</p>
           )}
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-6 flex gap-2">
           <input
             type="text"
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Adicionar novo item..."
+            placeholder="Ex: 5 Camisas pretas..."
             className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all placeholder:text-gray-400"
           />
           <button 
@@ -318,49 +358,37 @@ const PackingList: React.FC = () => {
   const [data, setData] = useState<PackingData | null>(null);
   const [isLoadingCloud, setIsLoadingCloud] = useState(true);
 
-  // Inicialização Robusta: Nuvem -> Local -> Inicial
   useEffect(() => {
     const initData = async () => {
       try {
         setIsLoadingCloud(true);
-        // 1. Tenta buscar backup da nuvem primeiro (Verdade Absoluta)
-        const cloudData = await loadDataFromCloud('packing_list');
+        const cloudData = await loadDataFromCloud('packing_list_v5');
         
         if (cloudData) {
-          console.log("Backup de mala encontrado na nuvem. Restaurando...");
           setData(cloudData as PackingData);
-          // Atualiza o local para ficar sincronizado
           localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
         } else {
-          // 2. Se não tem na nuvem, tenta local
           const localSaved = localStorage.getItem(STORAGE_KEY);
           if (localSaved) {
             setData(JSON.parse(localSaved));
           } else {
-            // 3. Se não tem lugar nenhum, usa padrão
             setData(INITIAL_DATA);
           }
         }
       } catch (e) {
-        console.error("Erro ao inicializar mala:", e);
-        // Fallback para local em caso de erro de rede
-        const localSaved = localStorage.getItem(STORAGE_KEY);
-        setData(localSaved ? JSON.parse(localSaved) : INITIAL_DATA);
+        setData(INITIAL_DATA);
       } finally {
         setIsLoadingCloud(false);
       }
     };
-
     initData();
   }, []);
 
-  // Sync: Sempre que mudar, salva local e na nuvem
   useEffect(() => {
     if (data && !isLoadingCloud) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      // Debounce para não floodar o banco
       const timeoutId = setTimeout(() => {
-        syncDataToCloud('packing_list', data);
+        syncDataToCloud('packing_list_v5', data);
       }, 2000);
       return () => clearTimeout(timeoutId);
     }
@@ -372,7 +400,7 @@ const PackingList: React.FC = () => {
     const itemIndex = newData[person][bag].findIndex(i => i.id === itemId);
     if (itemIndex > -1) {
       newData[person][bag][itemIndex].checked = !newData[person][bag][itemIndex].checked;
-      setData(newData);
+      setData({ ...newData });
     }
   };
 
@@ -380,7 +408,7 @@ const PackingList: React.FC = () => {
     if (!data) return;
     const newData = { ...data };
     newData[person][bag] = newData[person][bag].filter(i => i.id !== itemId);
-    setData(newData);
+    setData({ ...newData });
   };
 
   const handleEdit = (person: Person, bag: BagType, itemId: string, newText: string) => {
@@ -389,7 +417,7 @@ const PackingList: React.FC = () => {
     const itemIndex = newData[person][bag].findIndex(i => i.id === itemId);
     if (itemIndex > -1) {
       newData[person][bag][itemIndex].text = newText;
-      setData(newData);
+      setData({ ...newData });
     }
   };
 
@@ -401,7 +429,7 @@ const PackingList: React.FC = () => {
       text,
       checked: false
     });
-    setData(newData);
+    setData({ ...newData });
   };
 
   if (!data) return (
@@ -415,7 +443,7 @@ const PackingList: React.FC = () => {
     <div>
       <PackingTips />
       
-      <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+      <div className="flex bg-gray-100 p-1 rounded-xl mb-6 shadow-inner">
         {(['André', 'Marcelly'] as Person[]).map((person) => (
           <button
             key={person}
@@ -434,45 +462,45 @@ const PackingList: React.FC = () => {
 
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
         <BagSection 
-          title="Mala Despachada (23kg)" 
+          title="Mala 23kg (Despachada)" 
           icon={<Luggage className="w-5 h-5 text-blue-600" />}
-          items={data[activePerson]['23kg']}
+          items={data[activePerson]['bag23kg']}
           colorClass="border-blue-100"
-          onToggle={(id) => handleToggle(activePerson, '23kg', id)}
-          onDelete={(id) => handleDelete(activePerson, '23kg', id)}
-          onEdit={(id, txt) => handleEdit(activePerson, '23kg', id, txt)}
-          onAdd={(text) => handleAdd(activePerson, '23kg', text)}
+          onToggle={(id) => handleToggle(activePerson, 'bag23kg', id)}
+          onDelete={(id) => handleDelete(activePerson, 'bag23kg', id)}
+          onEdit={(id, txt) => handleEdit(activePerson, 'bag23kg', id, txt)}
+          onAdd={(text) => handleAdd(activePerson, 'bag23kg', text)}
         />
 
         <BagSection 
-          title="Nécessaire / Extra (10kg)" 
+          title="Mala 10kg (Mão)" 
           icon={<ShoppingBag className="w-5 h-5 text-orange-600" />}
-          items={data[activePerson]['10kg']}
+          items={data[activePerson]['bag10kg']}
           colorClass="border-orange-100"
-          onToggle={(id) => handleToggle(activePerson, '10kg', id)}
-          onDelete={(id) => handleDelete(activePerson, '10kg', id)}
-          onEdit={(id, txt) => handleEdit(activePerson, '10kg', id, txt)}
-          onAdd={(text) => handleAdd(activePerson, '10kg', text)}
+          onToggle={(id) => handleToggle(activePerson, 'bag10kg', id)}
+          onDelete={(id) => handleDelete(activePerson, 'bag10kg', id)}
+          onEdit={(id, txt) => handleEdit(activePerson, 'bag10kg', id, txt)}
+          onAdd={(text) => handleAdd(activePerson, 'bag10kg', text)}
         />
 
         <BagSection 
-          title="Mala de Mão (Documentos & Tech)" 
+          title="Frasqueira 5kg (Mão)" 
           icon={<Briefcase className="w-5 h-5 text-purple-600" />}
-          items={data[activePerson]['hand']}
+          items={data[activePerson]['pouch5kg']}
           colorClass="border-purple-100"
-          onToggle={(id) => handleToggle(activePerson, 'hand', id)}
-          onDelete={(id) => handleDelete(activePerson, 'hand', id)}
-          onEdit={(id, txt) => handleEdit(activePerson, 'hand', id, txt)}
-          onAdd={(text) => handleAdd(activePerson, 'hand', text)}
+          onToggle={(id) => handleToggle(activePerson, 'pouch5kg', id)}
+          onDelete={(id) => handleDelete(activePerson, 'pouch5kg', id)}
+          onEdit={(id, txt) => handleEdit(activePerson, 'pouch5kg', id, txt)}
+          onAdd={(text) => handleAdd(activePerson, 'pouch5kg', text)}
         />
       </div>
 
-      <div className="text-center mt-4">
-        <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-          <Save className="w-3 h-3" />
-          <Cloud className="w-3 h-3" />
-          {isLoadingCloud ? 'Sincronizando...' : 'Backup automático na nuvem'}
+      <div className="text-center mt-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1.5 uppercase font-black tracking-widest">
+          <Sticker className="w-3 h-3 text-sa-green" />
+          Agrupamento Automático Ativo
         </p>
+        <p className="text-[9px] text-gray-400 mt-1">A IA categoriza itens como roupas, eletrônicos e higiene conforme você escreve.</p>
       </div>
     </div>
   );
