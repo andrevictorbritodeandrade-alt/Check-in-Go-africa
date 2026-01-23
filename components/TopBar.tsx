@@ -1,48 +1,79 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Loader2, 
   CloudOff,
   RefreshCw,
   Bell,
   X,
   Clock,
   Car,
-  AlertTriangle
+  AlertTriangle,
+  CloudUpload,
+  CloudCheck,
+  WifiOff
 } from 'lucide-react';
 
 interface TopBarProps {
   variant?: 'home' | 'minimal';
-  alerts?: string[];
 }
 
 const TopBar: React.FC<TopBarProps> = ({ variant = 'home' }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncStatus, setSyncStatus] = useState<'saving' | 'saved' | 'offline' | 'error'>('saved');
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<string[]>([]);
   
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOffline = () => {
+        setIsOnline(false);
+        setSyncStatus('offline');
+    };
+    
+    const handleSyncStatus = (e: any) => setSyncStatus(e.detail);
+    const handleNewAlert = (e: any) => setActiveAlerts(prev => [...prev, e.detail]);
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
-    // Escuta eventos globais de notificação disparados pelo App.tsx
-    const handleNewAlert = (e: any) => {
-      setActiveAlerts(prev => [...prev, e.detail]);
-    };
+    window.addEventListener('sync-status', handleSyncStatus);
     window.addEventListener('app-notification', handleNewAlert);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('sync-status', handleSyncStatus);
       window.removeEventListener('app-notification', handleNewAlert);
     };
   }, []);
 
   return (
     <>
-      <div className="fixed top-2 right-2 z-[70] flex gap-2 pointer-events-none">
+      <div className="fixed top-2 right-2 z-[70] flex gap-2 pointer-events-none items-center">
+        
+        {/* Indicador de Nuvem Inteligente */}
+        <div className={`pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg transition-all duration-500 ${
+          syncStatus === 'saving' ? 'bg-sa-green text-white border-white animate-pulse' :
+          syncStatus === 'offline' ? 'bg-amber-500/90 text-white border-amber-300' :
+          'bg-black/40 border-white/20 text-white'
+        }`}>
+            {syncStatus === 'saving' ? (
+                <>
+                    <CloudUpload className="w-3.5 h-3.5 animate-bounce" />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Sincronizando</span>
+                </>
+            ) : syncStatus === 'offline' ? (
+                <>
+                    <WifiOff className="w-3.5 h-3.5" />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Offline</span>
+                </>
+            ) : (
+                <>
+                    <CloudCheck className={`w-3.5 h-3.5 ${isOnline ? 'text-sa-green' : 'text-slate-400'}`} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Protegido</span>
+                </>
+            )}
+        </div>
+
         {/* Sino de Notificações */}
         <button 
           onClick={() => setIsAlertsOpen(true)}
@@ -59,17 +90,6 @@ const TopBar: React.FC<TopBarProps> = ({ variant = 'home' }) => {
             </span>
           )}
         </button>
-
-        {/* Sync Indicator */}
-        <div className={`pointer-events-auto p-2 rounded-full backdrop-blur-md border shadow-lg transition-all duration-500 ${
-          isOnline ? 'bg-black/40 border-green-500/30 text-green-400' : 'bg-red-950/40 border-red-500/50 text-red-400'
-        }`}>
-           {isOnline ? (
-             <RefreshCw className="w-4 h-4 animate-[spin_3s_linear_infinite]" />
-           ) : (
-             <CloudOff className="w-4 h-4" />
-           )}
-        </div>
       </div>
 
       {/* Painel de Alertas */}
