@@ -10,8 +10,11 @@ import {
   AlertTriangle,
   CloudUpload,
   CloudCheck,
-  WifiOff
+  WifiOff,
+  Wifi,
+  CloudAlert
 } from 'lucide-react';
+import { SyncStatus } from '../services/firebase';
 
 interface TopBarProps {
   variant?: 'home' | 'minimal';
@@ -19,12 +22,15 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ variant = 'home' }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [syncStatus, setSyncStatus] = useState<'saving' | 'saved' | 'offline' | 'error'>('saved');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(navigator.onLine ? 'saved' : 'offline');
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<string[]>([]);
   
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+        setIsOnline(true);
+        setSyncStatus('online');
+    };
     const handleOffline = () => {
         setIsOnline(false);
         setSyncStatus('offline');
@@ -50,26 +56,35 @@ const TopBar: React.FC<TopBarProps> = ({ variant = 'home' }) => {
     <>
       <div className="fixed top-2 right-2 z-[70] flex gap-2 pointer-events-none items-center">
         
-        {/* Indicador de Nuvem Inteligente */}
-        <div className={`pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg transition-all duration-500 ${
+        {/* Indicador de Status de Conexão e Backup */}
+        <div className={`pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-2xl transition-all duration-500 ${
+          !isOnline ? 'bg-red-600 text-white border-red-400' :
           syncStatus === 'saving' ? 'bg-sa-green text-white border-white animate-pulse' :
-          syncStatus === 'offline' ? 'bg-amber-500/90 text-white border-amber-300' :
+          syncStatus === 'error' ? 'bg-amber-600 text-white border-amber-400' :
           'bg-black/40 border-white/20 text-white'
         }`}>
-            {syncStatus === 'saving' ? (
-                <>
-                    <CloudUpload className="w-3.5 h-3.5 animate-bounce" />
-                    <span className="text-[8px] font-black uppercase tracking-widest">Sincronizando</span>
-                </>
-            ) : syncStatus === 'offline' ? (
+            {!isOnline ? (
                 <>
                     <WifiOff className="w-3.5 h-3.5" />
-                    <span className="text-[8px] font-black uppercase tracking-widest">Offline</span>
+                    <span className="text-[9px] font-black uppercase tracking-wider">Modo Offline</span>
+                </>
+            ) : syncStatus === 'saving' ? (
+                <>
+                    <CloudUpload className="w-3.5 h-3.5 animate-bounce" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Fazendo Backup...</span>
+                </>
+            ) : syncStatus === 'error' ? (
+                <>
+                    <CloudAlert className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Erro de Nuvem</span>
                 </>
             ) : (
                 <>
-                    <CloudCheck className={`w-3.5 h-3.5 ${isOnline ? 'text-sa-green' : 'text-slate-400'}`} />
-                    <span className="text-[8px] font-black uppercase tracking-widest">Protegido</span>
+                    <div className="flex items-center gap-1">
+                        <Wifi className="w-3.5 h-3.5 text-sa-green" />
+                        <CloudCheck className="w-3.5 h-3.5 text-sa-green" />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-wider">Online & Seguro</span>
                 </>
             )}
         </div>

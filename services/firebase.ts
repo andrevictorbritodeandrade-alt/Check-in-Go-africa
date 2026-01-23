@@ -34,27 +34,35 @@ if (isValidConfig(firebaseConfig)) {
 
 const USER_ID = "andre_marcelly_sa_2026";
 
-export const notifySyncStatus = (status: 'saving' | 'saved' | 'offline' | 'error') => {
+export type SyncStatus = 'saving' | 'saved' | 'offline' | 'online' | 'error';
+
+export const notifySyncStatus = (status: SyncStatus) => {
   const event = new CustomEvent('sync-status', { detail: status });
   window.dispatchEvent(event);
 };
 
-// Monitor de internet para re-sincronização
+// Monitor de internet robusto
 window.addEventListener('online', () => {
-  console.log("Internet de volta! Sincronizando dados pendentes...");
-  notifySyncStatus('saving');
-  // Dispara evento global para componentes re-sincronizarem
+  console.log("Conectado! Sincronizando dados...");
+  notifySyncStatus('online');
+  // Dispara evento global para componentes re-sincronizarem imediatamente
   window.dispatchEvent(new CustomEvent('app-back-online'));
 });
 
 window.addEventListener('offline', () => {
+  console.log("Sem internet. Operando em modo Local.");
   notifySyncStatus('offline');
 });
 
 export const syncDataToCloud = async (collectionName: string, data: any) => {
-  if (!isFirebaseInitialized || !db || !navigator.onLine) {
-    console.debug(`[Local Only] Gravado no celular: ${collectionName}`);
+  // Se estiver offline, avisa o sistema
+  if (!navigator.onLine) {
     notifySyncStatus('offline');
+    return;
+  }
+
+  // Se o Firebase não estiver pronto, não tenta sincronizar
+  if (!isFirebaseInitialized || !db) {
     return;
   }
 
@@ -65,6 +73,7 @@ export const syncDataToCloud = async (collectionName: string, data: any) => {
       lastUpdated: new Date().toISOString()
     }, { merge: true });
     
+    // Após salvar com sucesso, volta para o estado online/protegido
     notifySyncStatus('saved');
   } catch (e) {
     console.error(`[Firebase] Sync Error:`, e);

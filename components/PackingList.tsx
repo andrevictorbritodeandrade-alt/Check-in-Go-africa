@@ -260,9 +260,10 @@ const BagSection: React.FC<{
   };
 
   // --- AGRUPAMENTO E ORDENAÇÃO ---
-  const groupedItems = useMemo(() => {
+  // Fix: Explicitly type useMemo and its contents to ensure .map works on returned items
+  const groupedItems = useMemo<Record<string, Item[]>>(() => {
     const groups: Record<string, Item[]> = {};
-    items.forEach(item => {
+    (items as Item[]).forEach(item => {
       const cat = identifyCategory(item.text);
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(item);
