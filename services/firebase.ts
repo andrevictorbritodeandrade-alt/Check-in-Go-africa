@@ -4,12 +4,12 @@ import { getFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore
 import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID
+  apiKey: process.env.API_KEY || process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID
 };
 
 let app: FirebaseApp | null = null;
@@ -27,9 +27,12 @@ if (isValidConfig(firebaseConfig)) {
     db = getFirestore(app);
     auth = getAuth(app);
     isFirebaseInitialized = true;
+    console.log("[Firebase] Inicializado com sucesso.");
   } catch (error) {
-    console.error("[Firebase] Fail:", error);
+    console.error("[Firebase] Falha na inicialização:", error);
   }
+} else {
+  console.warn("[Firebase] Configurações ausentes. Sincronização em nuvem desativada.");
 }
 
 const USER_ID = "andre_marcelly_sa_2026";
@@ -41,28 +44,17 @@ export const notifySyncStatus = (status: SyncStatus) => {
   window.dispatchEvent(event);
 };
 
-// Monitor de internet robusto
 window.addEventListener('online', () => {
-  console.log("Conectado! Sincronizando dados...");
   notifySyncStatus('online');
-  // Dispara evento global para componentes re-sincronizarem imediatamente
   window.dispatchEvent(new CustomEvent('app-back-online'));
 });
 
 window.addEventListener('offline', () => {
-  console.log("Sem internet. Operando em modo Local.");
   notifySyncStatus('offline');
 });
 
 export const syncDataToCloud = async (collectionName: string, data: any) => {
-  // Se estiver offline, avisa o sistema
-  if (!navigator.onLine) {
-    notifySyncStatus('offline');
-    return;
-  }
-
-  // Se o Firebase não estiver pronto, não tenta sincronizar
-  if (!isFirebaseInitialized || !db) {
+  if (!navigator.onLine || !isFirebaseInitialized || !db) {
     return;
   }
 
@@ -72,21 +64,28 @@ export const syncDataToCloud = async (collectionName: string, data: any) => {
       ...data,
       lastUpdated: new Date().toISOString()
     }, { merge: true });
-    
-    // Após salvar com sucesso, volta para o estado online/protegido
     notifySyncStatus('saved');
+    console.log(`[Firebase] Dados sincronizados em: ${collectionName}`);
   } catch (e) {
-    console.error(`[Firebase] Sync Error:`, e);
+    console.error(`[Firebase] Erro ao salvar ${collectionName}:`, e);
     notifySyncStatus('error');
   }
 };
 
 export const loadDataFromCloud = async (collectionName: string) => {
-  if (!isFirebaseInitialized || !db || !navigator.onLine) return null;
+  if (!isFirebaseInitialized || !db || !navigator.onLine) {
+    console.warn(`[Firebase] Não é possível carregar ${collectionName} agora (Offline ou Não Inicializado).`);
+    return null;
+  }
   try {
     const docSnap = await getDoc(doc(db, collectionName, USER_ID));
-    return docSnap.exists() ? docSnap.data() : null;
+    if (docSnap.exists()) {
+      console.log(`[Firebase] Dados carregados de: ${collectionName}`);
+      return docSnap.data();
+    }
+    return null;
   } catch (e) {
+    console.error(`[Firebase] Erro ao carregar ${collectionName}:`, e);
     return null;
   }
 };
