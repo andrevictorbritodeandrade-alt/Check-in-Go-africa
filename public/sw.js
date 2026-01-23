@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'checkin-go-v3';
+const CACHE_NAME = 'checkin-go-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -9,7 +9,6 @@ const ASSETS_TO_CACHE = [
   '/manifest.json'
 ];
 
-// Instalação: Cacheia arquivos essenciais
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -19,7 +18,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Ativação: Limpa caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -31,8 +29,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Estratégia Stale-While-Revalidate: 
-// Serve do cache imediatamente, mas busca versão nova na rede em segundo plano
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 

@@ -1,0 +1,24 @@
+
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="120" fill="#007749"/>
+  <!-- Globo de fundo estilizado -->
+  <circle cx="256" cy="256" r="180" stroke="white" stroke-width="4" stroke-dasharray="20 10" opacity="0.3"/>
+  <circle cx="256" cy="256" r="120" stroke="white" stroke-width="2" stroke-dasharray="10 5" opacity="0.2"/>
+  
+  <!-- Símbolo da Bandeira/Triângulo estilizado -->
+  <path d="M100 156L256 256L100 356V156Z" fill="#FFB81C"/>
+  <path d="M100 120L320 256L100 392" stroke="white" stroke-width="20" stroke-linecap="round"/>
+  <path d="M100 120L320 256L100 392" stroke="#E03C31" stroke-width="10" stroke-linecap="round"/>
+  
+  <!-- Avião "GO!" -->
+  <g transform="translate(256, 256) rotate(-45)">
+    <path d="M0 -140L20 -100H-20L0 -140Z" fill="white"/>
+    <path d="M0 -120V20" stroke="white" stroke-width="12" stroke-linecap="round"/>
+    <rect x="-30" y="-80" width="60" height="10" rx="5" fill="white"/>
+    <rect x="-15" y="-10" width="30" height="6" rx="3" fill="white"/>
+  </g>
+  
+  <!-- Texto GO! estilizado -->
+  <path d="M340 380L380 420M380 380L340 420" stroke="#FFB81C" stroke-width="15" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="230" stroke="#FFB81C" stroke-width="12" opacity="0.5"/>
+</svg>

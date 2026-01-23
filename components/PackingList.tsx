@@ -188,10 +188,10 @@ const PackingList: React.FC = () => {
     const initData = async () => {
       setIsLoading(true);
       try {
-        // Fix: Explicitly cast return values to handle potential 'unknown' or 'any' types from external services
-        const cloudData = (await loadDataFromCloud('packing_list_v5')) as any;
+        // Explicitly type return values to avoid 'unknown' errors
+        const cloudData: any = await loadDataFromCloud('packing_list_v5');
         const localSaved = localStorage.getItem(STORAGE_KEY);
-        const parsedLocal = localSaved ? (JSON.parse(localSaved) as any) : null;
+        const parsedLocal: any = localSaved ? JSON.parse(localSaved) : null;
 
         if (cloudData) {
           console.log("[Packing] Nuvem encontrada. Sincronizando.");

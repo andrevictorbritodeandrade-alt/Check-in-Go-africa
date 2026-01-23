@@ -11,8 +11,6 @@ interface Message {
   isOfflineResponse?: boolean;
 }
 
-const API_KEY = process.env.API_KEY;
-
 const OFFLINE_KNOWLEDGE: Record<string, string> = {
   'desembarque': `🇿🇦 **Logística de Desembarque (CPT):**\n\n1. **Wi-Fi:** O Aeroporto da Cidade do Cabo tem Wi-Fi grátis. Use para chamar o Uber logo ao pousar.\n2. **Uber/Bolt:** Siga as placas para "E-Hailing" ou "Parkade P1".\n3. **Localização:** O Uber para no **Ground Floor (Térreo)** do estacionamento P1.\n4. **Segurança:** Ignore taxistas no saguão. Vá direto para a garagem.\n5. **Fones QCY:** Use os fones para abafar o ruído da garagem se estiver ansioso.`,
   'segurança': `🇿🇦 **Dica de Segurança Offline:**\n\n1. **Uber/Bolt:** Nunca pegue táxi na rua. Use sempre o App. Confira a placa antes de entrar.\n2. **Andar a pé:** Evite, especialmente à noite ou no centro de Joanesburgo. Em Cape Town, Waterfront é seguro, mas cuidado na Long Street.\n3. **Golpes:** Se alguém for muito simpático no caixa eletrônico (ATM), ignore. Não aceite ajuda.\n4. **Emergência:** Disque 112 do celular.`,
@@ -115,11 +113,12 @@ const AiAssistant: React.FC = () => {
     setIsLoading(true);
 
     try {
-      if (!API_KEY || !navigator.onLine) {
+      if (!process.env.API_KEY || !navigator.onLine) {
          throw new Error("Offline Mode Trigger");
       }
 
-      const ai = new GoogleGenAI({ apiKey: API_KEY });
+      // Initialize right before call to ensure up-to-date config
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
@@ -132,6 +131,7 @@ const AiAssistant: React.FC = () => {
         }
       });
 
+      // Directly access .text property
       const aiText = response.text || "Desculpe, não consegui processar. Tente novamente.";
       
       const aiMsg: Message = {

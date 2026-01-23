@@ -4,7 +4,8 @@ import { getFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore
 import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: process.env.API_KEY || process.env.VITE_FIREBASE_API_KEY,
+  // Use process.env.API_KEY exclusively
+  apiKey: process.env.API_KEY,
   authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
@@ -72,7 +73,8 @@ export const syncDataToCloud = async (collectionName: string, data: any) => {
   }
 };
 
-export const loadDataFromCloud = async (collectionName: string) => {
+// Explicitly return any to avoid 'unknown' type issues in consumers
+export const loadDataFromCloud = async (collectionName: string): Promise<any> => {
   if (!isFirebaseInitialized || !db || !navigator.onLine) {
     console.warn(`[Firebase] Não é possível carregar ${collectionName} agora (Offline ou Não Inicializado).`);
     return null;
