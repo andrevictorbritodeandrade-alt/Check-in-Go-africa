@@ -3,23 +3,22 @@
   "name": "Check-In, GO! África do Sul",
   "short_name": "Check-In GO!",
   "description": "Seu companheiro definitivo de viagem para a África do Sul.",
-  "id": "com.checkingo.sa",
-  "start_url": "./index.html",
+  "id": "com.checkingo.sa.v1",
+  "start_url": "./",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#007749",
   "orientation": "portrait",
-  "display_override": ["window-controls-overlay", "minimal-ui"],
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "favicon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
+      "src": "favicon.svg",
       "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "maskable"

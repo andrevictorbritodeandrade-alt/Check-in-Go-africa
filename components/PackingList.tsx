@@ -165,7 +165,8 @@ const BagSection: React.FC<{
           {Object.entries(groupedItems).map(([category, catItems]) => (
             <div key={category}>
               <div className="flex items-center gap-2 px-2 mb-2"><Tag className="w-3 h-3 text-slate-300" /><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span><div className="h-[1px] flex-1 bg-slate-50"></div></div>
-              <div className="space-y-1">{catItems.map(item => <PackingListItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />)}</div>
+              {/* Added explicit type cast to catItems as Item[] to resolve 'unknown' type error during mapping */}
+              <div className="space-y-1">{(catItems as Item[]).map(item => <PackingListItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />)}</div>
             </div>
           ))}
           {items.length === 0 && <p className="text-center text-gray-300 text-xs italic py-2">Nenhum item nesta lista.</p>}

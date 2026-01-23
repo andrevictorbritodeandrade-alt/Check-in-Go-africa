@@ -4,19 +4,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#007749" />
     
-    <!-- PWA Fullscreen Meta Tags para iOS -->
+    <!-- Meta tags para o App se comportar como nativo -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Check-In GO!" />
+    <meta name="theme-color" content="#007749" />
     
-    <title>CHECK-IN, GO! - África do Sul</title>
-    <link rel="manifest" href="/manifest.json" />
+    <title>Check-In, GO! - África do Sul</title>
     
-    <!-- Favicon and Mobile Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <!-- Ícone e Manifesto -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,6 +41,12 @@
                 blue: '#001489',
                 black: '#000000',
                 white: '#FFFFFF',
+              },
+              tribal: {
+                dark: '#1a1a1a',
+                green: '#004d2c',
+                blue: '#000a4d',
+                red: '#8b1e17'
               }
             }
           }
@@ -62,19 +69,16 @@
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-slate-800 antialiased selection:bg-sa-gold selection:text-sa-black font-sans">
+  <body class="bg-black text-slate-800 antialiased selection:bg-sa-gold selection:text-sa-black font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
+      // Forçar o registro do Service Worker para habilitar o botão "Instalar"
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.warn('SW registration failed: ', registrationError);
-            });
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('App pronto para instalar.'))
+            .catch(err => console.warn('Erro PWA:', err));
         });
       }
     </script>
