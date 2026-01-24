@@ -12,13 +12,13 @@ import {
   Pencil,
   X,
   Check,
-  Smartphone,
   FileText,
   RefreshCw,
   Tag,
-  Sticker
+  Sticker,
+  CloudLightning
 } from 'lucide-react';
-import { syncDataToCloud, loadDataFromCloud } from '../services/firebase';
+import { syncDataToCloud, subscribeToCloudData } from '../services/firebase';
 
 type BagType = 'bag23kg' | 'bag10kg' | 'pouch5kg';
 type Person = 'André' | 'Marcelly';
@@ -47,9 +47,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
 const identifyCategory = (text: string): string => {
   const normalized = text.toLowerCase();
   for (const [category, keywords] of Object.entries(CATEGORY_MAP)) {
-    if (keywords.some(k => normalized.includes(k))) {
-      return category;
-    }
+    if (keywords.some(k => normalized.includes(k))) return category;
   }
   return '📦 DIVERSOS';
 };
@@ -79,11 +77,6 @@ const PackingListItem: React.FC<{
     }
   };
 
-  const handleCancel = () => {
-    setEditText(item.text);
-    setIsEditing(false);
-  };
-
   if (isEditing) {
     return (
       <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-green-200 shadow-sm">
@@ -96,7 +89,7 @@ const PackingListItem: React.FC<{
         />
         <div className="flex shrink-0 gap-1">
           <button onClick={handleSave} className="text-green-600 p-1.5 hover:bg-green-50 rounded-md"><Check className="w-4 h-4" /></button>
-          <button onClick={handleCancel} className="text-gray-400 p-1.5 hover:bg-gray-100 rounded-md"><X className="w-4 h-4" /></button>
+          <button onClick={() => setIsEditing(false)} className="text-gray-400 p-1.5 hover:bg-gray-100 rounded-md"><X className="w-4 h-4" /></button>
         </div>
       </div>
     );
@@ -165,8 +158,7 @@ const BagSection: React.FC<{
           {Object.entries(groupedItems).map(([category, catItems]) => (
             <div key={category}>
               <div className="flex items-center gap-2 px-2 mb-2"><Tag className="w-3 h-3 text-slate-300" /><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span><div className="h-[1px] flex-1 bg-slate-50"></div></div>
-              {/* Added explicit type cast to catItems as Item[] to resolve 'unknown' type error during mapping */}
-              <div className="space-y-1">{(catItems as Item[]).map(item => <PackingListItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />)}</div>
+              <div className="space-y-1">{catItems.map(item => <PackingListItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />)}</div>
             </div>
           ))}
           {items.length === 0 && <p className="text-center text-gray-300 text-xs italic py-2">Nenhum item nesta lista.</p>}
@@ -185,46 +177,40 @@ const PackingList: React.FC = () => {
   const [data, setData] = useState<PackingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // SUBSCRIBE TO REAL-TIME UPDATES
   useEffect(() => {
-    const initData = async () => {
-      setIsLoading(true);
+    setIsLoading(true);
+    
+    // Carregar do cache local primeiro para carregar rápido
+    const localSaved = localStorage.getItem(STORAGE_KEY);
+    if (localSaved) {
       try {
-        // Explicitly type return values to avoid 'unknown' errors
-        const cloudData: any = await loadDataFromCloud('packing_list_v5');
-        const localSaved = localStorage.getItem(STORAGE_KEY);
-        const parsedLocal: any = localSaved ? JSON.parse(localSaved) : null;
-
-        if (cloudData) {
-          console.log("[Packing] Nuvem encontrada. Sincronizando.");
-          setData(cloudData as PackingData);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-        } else if (parsedLocal) {
-          console.log("[Packing] Nuvem vazia, usando local e enviando para nuvem.");
-          setData(parsedLocal as PackingData);
-          syncDataToCloud('packing_list_v5', parsedLocal);
-        } else {
-          console.log("[Packing] Sem dados em lugar algum. Usando inicial.");
-          setData(INITIAL_DATA);
-        }
+        const parsed = JSON.parse(localSaved);
+        setData(parsed as PackingData);
       } catch (e) {
-        console.error("[Packing] Erro no carregamento:", e);
-        setData(INITIAL_DATA);
-      } finally {
-        setIsLoading(false);
+        console.error("Erro ao carregar cache local", e);
       }
-    };
-    initData();
+    }
+
+    // Conectar ao Firebase em Tempo Real
+    const unsubscribe = subscribeToCloudData('packing_list_v5', (cloudData) => {
+      if (cloudData) {
+        setData(cloudData as PackingData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+      } else if (!data) {
+        setData(INITIAL_DATA);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (data && !isLoading) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      const timeoutId = setTimeout(() => {
-        syncDataToCloud('packing_list_v5', data);
-      }, 1000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [data, isLoading]);
+  const updateCloud = (newData: PackingData) => {
+    setData(newData);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+    syncDataToCloud('packing_list_v5', newData);
+  };
 
   const handleToggle = (person: Person, bag: BagType, itemId: string) => {
     if (!data) return;
@@ -232,7 +218,7 @@ const PackingList: React.FC = () => {
     const itemIndex = newData[person][bag].findIndex((i: any) => i.id === itemId);
     if (itemIndex > -1) {
       newData[person][bag][itemIndex].checked = !newData[person][bag][itemIndex].checked;
-      setData(newData);
+      updateCloud(newData);
     }
   };
 
@@ -240,7 +226,7 @@ const PackingList: React.FC = () => {
     if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     newData[person][bag] = newData[person][bag].filter((i: any) => i.id !== itemId);
-    setData(newData);
+    updateCloud(newData);
   };
 
   const handleEdit = (person: Person, bag: BagType, itemId: string, newText: string) => {
@@ -249,7 +235,7 @@ const PackingList: React.FC = () => {
     const itemIndex = newData[person][bag].findIndex((i: any) => i.id === itemId);
     if (itemIndex > -1) {
       newData[person][bag][itemIndex].text = newText;
-      setData(newData);
+      updateCloud(newData);
     }
   };
 
@@ -257,21 +243,27 @@ const PackingList: React.FC = () => {
     if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     newData[person][bag].push({ id: Date.now().toString(), text, checked: false });
-    setData(newData);
+    updateCloud(newData);
   };
 
-  if (isLoading || !data) return (
+  if (isLoading && !data) return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-400">
        <RefreshCw className="w-8 h-8 animate-spin text-sa-green" />
        <p className="text-xs font-bold uppercase tracking-widest">Sincronizando Malas...</p>
     </div>
   );
 
+  // Destructure personData safely to avoid property access on null/undefined
+  const personData = data ? data[activePerson] : null;
+
   return (
     <div>
-      <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 mb-6">
-        <h3 className="text-yellow-800 font-bold flex items-center gap-2 mb-2 text-sm uppercase"><FileText className="w-4 h-4" /> Dica de Sincronização</h3>
-        <p className="text-xs text-yellow-800 leading-relaxed">Seus dados agora são salvos na nuvem. Se usar outro navegador, basta estar logado na mesma rede e os itens aparecerão automaticamente.</p>
+      <div className="bg-green-900/10 border border-green-200 rounded-2xl p-4 mb-6 flex gap-3 items-start">
+        <CloudLightning className="w-5 h-5 text-sa-green shrink-0 mt-0.5" />
+        <div>
+          <h3 className="text-sa-green font-bold text-sm uppercase">Sincronização Instantânea</h3>
+          <p className="text-[10px] text-green-800 leading-relaxed font-medium">As alterações feitas aqui aparecerão automaticamente em todos os seus outros aparelhos conectados.</p>
+        </div>
       </div>
       
       <div className="flex bg-gray-100 p-1 rounded-xl mb-6 shadow-inner">
@@ -283,12 +275,12 @@ const PackingList: React.FC = () => {
       </div>
 
       <div className="animate-in fade-in slide-in-from-bottom-2">
-        <BagSection title="Mala 23kg (Despachada)" icon={<Luggage className="w-5 h-5 text-blue-600" />} items={data[activePerson]['bag23kg']} colorClass="border-blue-100" onToggle={(id) => handleToggle(activePerson, 'bag23kg', id)} onDelete={(id) => handleDelete(activePerson, 'bag23kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'bag23kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'bag23kg', text)} />
-        <BagSection title="Mala 10kg (Mão)" icon={<ShoppingBag className="w-5 h-5 text-orange-600" />} items={data[activePerson]['bag10kg']} colorClass="border-orange-100" onToggle={(id) => handleToggle(activePerson, 'bag10kg', id)} onDelete={(id) => handleDelete(activePerson, 'bag10kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'bag10kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'bag10kg', text)} />
-        <BagSection title="Frasqueira 5kg (Mão)" icon={<Briefcase className="w-5 h-5 text-purple-600" />} items={data[activePerson]['pouch5kg']} colorClass="border-purple-100" onToggle={(id) => handleToggle(activePerson, 'pouch5kg', id)} onDelete={(id) => handleDelete(activePerson, 'pouch5kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'pouch5kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'pouch5kg', text)} />
+        <BagSection title="Mala 23kg (Despachada)" icon={<Luggage className="w-5 h-5 text-blue-600" />} items={personData?.bag23kg || []} onToggle={(id) => handleToggle(activePerson, 'bag23kg', id)} onDelete={(id) => handleDelete(activePerson, 'bag23kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'bag23kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'bag23kg', text)} />
+        <BagSection title="Mala 10kg (Mão)" icon={<ShoppingBag className="w-5 h-5 text-orange-600" />} items={personData?.bag10kg || []} onToggle={(id) => handleToggle(activePerson, 'bag10kg', id)} onDelete={(id) => handleDelete(activePerson, 'bag10kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'bag10kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'bag10kg', text)} />
+        <BagSection title="Frasqueira 5kg (Mão)" icon={<Briefcase className="w-5 h-5 text-purple-600" />} items={personData?.pouch5kg || []} onToggle={(id) => handleToggle(activePerson, 'pouch5kg', id)} onDelete={(id) => handleDelete(activePerson, 'pouch5kg', id)} onEdit={(id, txt) => handleEdit(activePerson, 'pouch5kg', id, txt)} onAdd={(text) => handleAdd(activePerson, 'pouch5kg', text)} />
       </div>
       <div className="text-center mt-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-        <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1.5 uppercase font-black tracking-widest"><Sticker className="w-3 h-3 text-sa-green" /> Backup em Tempo Real Ativo</p>
+        <p className="text-[10px] text-gray-400 flex items-center justify-center gap-1.5 uppercase font-black tracking-widest"><Sticker className="w-3 h-3 text-sa-green" /> Modo Multi-Device Ativo</p>
       </div>
     </div>
   );

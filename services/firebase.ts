@@ -1,10 +1,9 @@
 
 import { initializeApp, FirebaseApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, Firestore } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
-  // Use process.env.API_KEY exclusively
   apiKey: process.env.API_KEY,
   authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.VITE_FIREBASE_PROJECT_ID,
@@ -32,33 +31,19 @@ if (isValidConfig(firebaseConfig)) {
   } catch (error) {
     console.error("[Firebase] Falha na inicialização:", error);
   }
-} else {
-  console.warn("[Firebase] Configurações ausentes. Sincronização em nuvem desativada.");
 }
 
 const USER_ID = "andre_marcelly_sa_2026";
 
-export type SyncStatus = 'saving' | 'saved' | 'offline' | 'online' | 'error';
+export type SyncStatus = 'saving' | 'saved' | 'offline' | 'online' | 'error' | 'syncing';
 
 export const notifySyncStatus = (status: SyncStatus) => {
   const event = new CustomEvent('sync-status', { detail: status });
   window.dispatchEvent(event);
 };
 
-window.addEventListener('online', () => {
-  notifySyncStatus('online');
-  window.dispatchEvent(new CustomEvent('app-back-online'));
-});
-
-window.addEventListener('offline', () => {
-  notifySyncStatus('offline');
-});
-
 export const syncDataToCloud = async (collectionName: string, data: any) => {
-  if (!navigator.onLine || !isFirebaseInitialized || !db) {
-    return;
-  }
-
+  if (!navigator.onLine || !isFirebaseInitialized || !db) return;
   try {
     notifySyncStatus('saving');
     await setDoc(doc(db, collectionName, USER_ID), {
@@ -66,28 +51,35 @@ export const syncDataToCloud = async (collectionName: string, data: any) => {
       lastUpdated: new Date().toISOString()
     }, { merge: true });
     notifySyncStatus('saved');
-    console.log(`[Firebase] Dados sincronizados em: ${collectionName}`);
   } catch (e) {
     console.error(`[Firebase] Erro ao salvar ${collectionName}:`, e);
     notifySyncStatus('error');
   }
 };
 
-// Explicitly return any to avoid 'unknown' type issues in consumers
+// Nova função para escutar mudanças em tempo real
+export const subscribeToCloudData = (collectionName: string, callback: (data: any) => void) => {
+  if (!isFirebaseInitialized || !db) return () => {};
+  
+  const docRef = doc(db, collectionName, USER_ID);
+  
+  return onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      notifySyncStatus('syncing');
+      callback(docSnap.data());
+      setTimeout(() => notifySyncStatus('saved'), 1000);
+    }
+  }, (error) => {
+    console.error(`[Firebase] Erro no listener de ${collectionName}:`, error);
+  });
+};
+
 export const loadDataFromCloud = async (collectionName: string): Promise<any> => {
-  if (!isFirebaseInitialized || !db || !navigator.onLine) {
-    console.warn(`[Firebase] Não é possível carregar ${collectionName} agora (Offline ou Não Inicializado).`);
-    return null;
-  }
+  if (!isFirebaseInitialized || !db || !navigator.onLine) return null;
   try {
     const docSnap = await getDoc(doc(db, collectionName, USER_ID));
-    if (docSnap.exists()) {
-      console.log(`[Firebase] Dados carregados de: ${collectionName}`);
-      return docSnap.data();
-    }
-    return null;
+    return docSnap.exists() ? docSnap.data() : null;
   } catch (e) {
-    console.error(`[Firebase] Erro ao carregar ${collectionName}:`, e);
     return null;
   }
 };
