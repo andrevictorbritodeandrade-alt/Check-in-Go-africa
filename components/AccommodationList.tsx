@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Hotel, 
@@ -49,15 +50,15 @@ const ACCOMMODATIONS: Accommodation[] = [
     id: 'CPT_AIRBNB',
     tripPhase: 'DESTINO 1',
     cityLabel: 'CIDADE DO CABO',
-    name: 'Apartamento em Cidade do Cabo',
+    name: 'Estúdio Sea Point (Craig & Jenna)',
     provider: 'Airbnb',
-    dates: '26 – 31 de jan. de 2026',
-    status: 'Pendente',
+    dates: '26 jan. – 31 jan. de 2026',
+    status: 'Confirmada',
     price: 'R$ 1.888,25',
-    neighborhood: 'Cidade do Cabo, África do Sul',
-    location: 'Apartamento inteiro',
+    neighborhood: 'Sea Point, Cidade do Cabo',
+    location: '38 Michau Street',
     guests: '2 hóspedes',
-    checkInInfo: 'Status: Pendente (O anfitrião tem 24h para confirmar).'
+    checkInInfo: 'Check-in: 15:00 • Checkout: 11:00 • Código: HM92D3C8K5'
   },
   {
     id: 'SANDTON_AIRBNB',

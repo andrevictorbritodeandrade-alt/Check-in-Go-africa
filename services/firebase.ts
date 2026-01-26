@@ -57,9 +57,13 @@ export const syncDataToCloud = async (collectionName: string, data: any) => {
   }
 };
 
-// Nova função para escutar mudanças em tempo real
+// Nova função para escutar mudanças em tempo real com tratamento de erro e "não encontrado"
 export const subscribeToCloudData = (collectionName: string, callback: (data: any) => void) => {
-  if (!isFirebaseInitialized || !db) return () => {};
+  if (!isFirebaseInitialized || !db) {
+    // Se não inicializado, avisa o componente imediatamente que não há dados na nuvem
+    setTimeout(() => callback(null), 10);
+    return () => {};
+  }
   
   const docRef = doc(db, collectionName, USER_ID);
   
@@ -68,9 +72,13 @@ export const subscribeToCloudData = (collectionName: string, callback: (data: an
       notifySyncStatus('syncing');
       callback(docSnap.data());
       setTimeout(() => notifySyncStatus('saved'), 1000);
+    } else {
+      // Documento ainda não existe no Firestore
+      callback(null);
     }
   }, (error) => {
     console.error(`[Firebase] Erro no listener de ${collectionName}:`, error);
+    callback(null); // Em caso de erro, libera o carregamento da UI
   });
 };
 

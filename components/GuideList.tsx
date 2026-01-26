@@ -112,7 +112,7 @@ const DEFAULT_GUIDE: GuideData = {
         { type: 'info', text: 'Conexão JNB (3h): Saque Rands no Standard Bank ou FNB. Recuse a conversão (Decline Conversion)!' },
         { type: 'flight', text: 'Chegada CPT (Voo Interno): Use o Wi-Fi grátis do aeroporto para chamar o Uber.' },
         { type: 'security', text: 'Logística Uber: Siga placas "E-Hailing" -> Parkade P1 (Ground Floor/Térreo). Ignore ofertas de táxi no saguão.' },
-        { type: 'plan_a', label: 'UBER', text: 'Vá direto para o Airbnb Green Point (~R$ 150). Prefira Uber ao Bolt em CPT.' },
+        { type: 'plan_a', label: 'UBER', text: 'Vá direto para o Airbnb em Sea Point (38 Michau St). ~R$ 150. Prefira Uber ao Bolt em CPT.' },
         { type: 'plan_b', label: 'ECONÔMICO', text: 'Ônibus MyCiti. Sai do terminal para o Civic Centre por R$ 30.' },
         { type: 'info', text: 'Dica Sensorial (QCY): Use os fones no Parkade/Garagem para evitar o barulho.' },
         { type: 'food', text: 'Jantar: V&A Waterfront (Perto do Airbnb) - Seguro e com muitas opções.' }
