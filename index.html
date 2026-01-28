@@ -1,25 +1,28 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
-    <!-- Meta tags para o App se comportar como nativo -->
+    <!-- PWA / Mobile Native Feel -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Check-In GO!" />
+    <meta name="application-name" content="Check-In GO!" />
     <meta name="theme-color" content="#007749" />
-    <meta name="description" content="A travel companion app for South Africa." />
+    <meta name="msapplication-navbutton-color" content="#007749">
+    <meta name="description" content="Seu guia offline para a África do Sul." />
     
     <title>Check-In, GO! - África do Sul</title>
     
-    <!-- Ícone e Manifesto -->
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="apple-touch-icon" href="favicon.svg" />
+    <!-- Assets Críticos -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -69,16 +72,16 @@
 }
 </script>
 </head>
-  <body class="bg-black text-slate-800 antialiased selection:bg-sa-gold selection:text-sa-black font-sans">
+  <body class="bg-black text-slate-800 antialiased selection:bg-sa-gold selection:text-sa-black font-sans overscroll-none">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      // Registro Robusto do Service Worker
+      // Registro do Service Worker para Offline & Instalação
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
+          navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-              console.log('SW registrado com escopo:', registration.scope);
+              console.log('SW registrado com sucesso:', registration.scope);
             })
             .catch(err => {
               console.log('SW falha no registro:', err);

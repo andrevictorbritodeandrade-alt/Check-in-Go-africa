@@ -85,63 +85,55 @@ const WalletInput: React.FC<{
 );
 
 const FinancialControl: React.FC = () => {
-  // --- STATE ---
-  const [wallets, setWallets] = useState<Wallets>({
-    wise: 0,
-    nomad: 0,
-    inter: 0,
-    cash: 0
+  // --- STATE WITH OFFLINE-FIRST INITIALIZATION ---
+  const [wallets, setWallets] = useState<Wallets>(() => {
+    try {
+      const saved = localStorage.getItem('checkin_go_finance_v1');
+      const parsed = saved ? JSON.parse(saved) : null;
+      return parsed?.wallets || { wise: 0, nomad: 0, inter: 0, cash: 0 };
+    } catch {
+      return { wise: 0, nomad: 0, inter: 0, cash: 0 };
+    }
   });
   
-  const [hotelCost, setHotelCost] = useState<number>(0);
-  const [busCost, setBusCost] = useState<number>(0);
-  
-  const [isLoading, setIsLoading] = useState(true);
+  const [hotelCost, setHotelCost] = useState<number>(() => {
+    try {
+        const saved = localStorage.getItem('checkin_go_finance_v1');
+        return saved ? JSON.parse(saved).hotelCost || 0 : 0;
+    } catch { return 0; }
+  });
+
+  const [busCost, setBusCost] = useState<number>(() => {
+    try {
+        const saved = localStorage.getItem('checkin_go_finance_v1');
+        return saved ? JSON.parse(saved).busCost || 0 : 0;
+    } catch { return 0; }
+  });
   
   // Totals
   const [totalCPT, setTotalCPT] = useState<number>(0);
   const [totalJNB, setTotalJNB] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
 
-  // Load user inputs with Cloud Priority
+  // Sync Background
   useEffect(() => {
     const initData = async () => {
         try {
             const cloudData = await loadDataFromCloud('financial_data');
-            
             if (cloudData) {
-                console.log("Financeiro carregado da nuvem");
                 if (cloudData.wallets) setWallets(cloudData.wallets);
                 if (cloudData.hotelCost) setHotelCost(cloudData.hotelCost);
                 if (cloudData.busCost) setBusCost(cloudData.busCost);
                 localStorage.setItem('checkin_go_finance_v1', JSON.stringify(cloudData));
-            } else {
-                const savedFinance = localStorage.getItem('checkin_go_finance_v1');
-                if (savedFinance) {
-                    const parsed = JSON.parse(savedFinance);
-                    if (parsed.wallets) setWallets(parsed.wallets);
-                    else if (parsed.balance !== undefined) setWallets(prev => ({ ...prev, wise: parsed.balance }));
-                    setHotelCost(parsed.hotelCost || 0);
-                    setBusCost(parsed.busCost || 0);
-                }
             }
         } catch (e) {
-            console.error("Erro sync financeiro", e);
-            const savedFinance = localStorage.getItem('checkin_go_finance_v1');
-            if (savedFinance) {
-                const parsed = JSON.parse(savedFinance);
-                if (parsed.wallets) setWallets(parsed.wallets);
-                setHotelCost(parsed.hotelCost || 0);
-                setBusCost(parsed.busCost || 0);
-            }
-        } finally {
-            setIsLoading(false);
+            console.error("Erro sync financeiro (background)", e);
         }
     };
-    initData();
+    if (navigator.onLine) initData();
   }, []);
 
-  // Load Estimated Costs from GuideList
+  // Load Estimated Costs from GuideList (Local)
   useEffect(() => {
     const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
     if (savedGuide) {
@@ -161,7 +153,7 @@ const FinancialControl: React.FC = () => {
     }
   }, []);
 
-  // Load Real Expenses
+  // Load Real Expenses (Local)
   useEffect(() => {
       const savedExpenses = localStorage.getItem(EXPENSES_STORAGE_KEY);
       if (savedExpenses) {
@@ -175,15 +167,15 @@ const FinancialControl: React.FC = () => {
 
   // Auto Save
   useEffect(() => {
-    if (!isLoading) {
-        const dataToSave = { wallets, hotelCost, busCost };
-        localStorage.setItem('checkin_go_finance_v1', JSON.stringify(dataToSave));
-        const timeoutId = setTimeout(() => {
+    const dataToSave = { wallets, hotelCost, busCost };
+    localStorage.setItem('checkin_go_finance_v1', JSON.stringify(dataToSave));
+    
+    // Debounce cloud sync
+    const timeoutId = setTimeout(() => {
         syncDataToCloud('financial_data', dataToSave);
-        }, 2000);
-        return () => clearTimeout(timeoutId);
-    }
-  }, [wallets, hotelCost, busCost, isLoading]);
+    }, 2000);
+    return () => clearTimeout(timeoutId);
+  }, [wallets, hotelCost, busCost]);
 
   // Wallet Handlers
   const updateWallet = (key: keyof Wallets, value: string) => {
@@ -198,15 +190,6 @@ const FinancialControl: React.FC = () => {
   const totalEstimatedTripCost = totalPending + totalGuideEstimated;
   
   const currentWalletBalance = totalBalance - totalExpenses;
-
-  if (isLoading) {
-      return (
-          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
-              <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
-              <p className="text-xs font-bold uppercase tracking-widest">Sincronizando finanças...</p>
-          </div>
-      );
-  }
 
   return (
     <div className="space-y-6">

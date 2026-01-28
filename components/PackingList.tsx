@@ -5,19 +5,17 @@ import {
   Trash2, 
   Briefcase, 
   Luggage, 
-  ShoppingBag,
-  User,
-  Pencil,
-  X,
-  Check,
-  RefreshCw,
-  Tag,
-  Sticker,
-  CloudLightning,
-  PlaneTakeoff,
-  PlaneLanding,
-  CheckCircle2,
-  Circle
+  ShoppingBag, 
+  User, 
+  Pencil, 
+  X, 
+  Check, 
+  RefreshCw, 
+  Tag, 
+  CloudLightning, 
+  PlaneTakeoff, 
+  PlaneLanding, 
+  Circle 
 } from 'lucide-react';
 import { syncDataToCloud, subscribeToCloudData } from '../services/firebase';
 
@@ -139,7 +137,7 @@ const BagSection: React.FC<{
   const [newItemText, setNewItemText] = useState('');
   const handleAdd = () => { if (newItemText.trim()) { onAdd(newItemText.trim()); setNewItemText(''); } };
 
-  const groupedItems = useMemo(() => {
+  const groupedItems = useMemo<Record<string, Item[]>>(() => {
     const groups: Record<string, Item[]> = {};
     items.forEach(item => {
       const cat = identifyCategory(item.text);
@@ -175,7 +173,7 @@ const BagSection: React.FC<{
           {Object.entries(groupedItems).map(([category, catItems]) => (
             <div key={category}>
               <div className="flex items-center gap-2 px-2 mb-2"><Tag className="w-3 h-3 text-slate-300" /><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span><div className="h-[1px] flex-1 bg-slate-50"></div></div>
-              <div className="space-y-1">{catItems.map(item => <PackingListItem key={item.id} item={item} onToggleIda={onToggleIda} onToggleVolta={onToggleVolta} onDelete={onDelete} onEdit={onEdit} />)}</div>
+              <div className="space-y-1">{(catItems as Item[]).map(item => <PackingListItem key={item.id} item={item} onToggleIda={onToggleIda} onToggleVolta={onToggleVolta} onDelete={onDelete} onEdit={onEdit} />)}</div>
             </div>
           ))}
           {items.length === 0 && <p className="text-center text-gray-300 text-xs italic py-2">Nenhum item nesta lista.</p>}
@@ -191,22 +189,23 @@ const BagSection: React.FC<{
 
 const PackingList: React.FC = () => {
   const [activePerson, setActivePerson] = useState<Person>('André');
-  const [data, setData] = useState<PackingData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // 1. Tenta carregar do cache local imediatamente
-    const localSaved = localStorage.getItem(STORAGE_KEY);
-    if (localSaved) {
-      try {
-        setData(JSON.parse(localSaved) as PackingData);
-      } catch (e) { console.error(e); }
+  
+  // OFFLINE-FIRST: Inicializa o estado DIRETAMENTE do localStorage.
+  // Isso evita a "piscada" de carregamento e faz o app parecer nativo/instantâneo.
+  const [data, setData] = useState<PackingData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : INITIAL_DATA;
+    } catch (e) {
+      return INITIAL_DATA;
     }
+  });
 
-    // 2. Escuta mudanças na nuvem
+  // Sincronização em Background
+  useEffect(() => {
+    // Escuta mudanças na nuvem sem bloquear a UI
     const unsubscribe = subscribeToCloudData('packing_list_v5', (cloudData: any) => {
       if (cloudData) {
-        // Migração segura para garantir campos returned/checked
         const migrated: any = {};
         (['André', 'Marcelly'] as Person[]).forEach(p => {
           migrated[p] = {};
@@ -223,70 +222,58 @@ const PackingList: React.FC = () => {
             }
           });
         });
+        // Atualiza apenas se for diferente (em um app real, faríamos um merge mais inteligente)
+        // Aqui confiamos que a nuvem é a verdade se estivermos online
         setData(migrated as PackingData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-      } else if (!data) {
-        // Se não houver dados no banco nem local, inicia o padrão
-        setData(INITIAL_DATA);
       }
-      setIsLoading(false); // Libera a UI assim que receber QUALQUER resposta (até nula)
     });
 
     return () => unsubscribe();
   }, []);
 
   const updateCloud = (newData: PackingData) => {
+    // Atualiza localmente IMEDIATAMENTE (Optimistic UI)
     setData(newData);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+    // Envia para nuvem em background
     syncDataToCloud('packing_list_v5', newData);
   };
 
   const handleToggleIda = (person: Person, bag: BagType, itemId: string) => {
-    if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     const list = newData[person][bag] as Item[];
-    const idx = list.findIndex(i => i.id === itemId);
+    const idx = list.findIndex((i: Item) => i.id === itemId);
     if (idx > -1) { list[idx].checked = !list[idx].checked; updateCloud(newData); }
   };
 
   const handleToggleVolta = (person: Person, bag: BagType, itemId: string) => {
-    if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     const list = newData[person][bag] as Item[];
-    const idx = list.findIndex(i => i.id === itemId);
+    const idx = list.findIndex((i: Item) => i.id === itemId);
     if (idx > -1) { list[idx].returned = !list[idx].returned; updateCloud(newData); }
   };
 
   const handleDelete = (person: Person, bag: BagType, itemId: string) => {
-    if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
-    newData[person][bag] = (newData[person][bag] as Item[]).filter(i => i.id !== itemId);
+    newData[person][bag] = (newData[person][bag] as Item[]).filter((i: Item) => i.id !== itemId);
     updateCloud(newData);
   };
 
   const handleEdit = (person: Person, bag: BagType, itemId: string, newText: string) => {
-    if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     const list = newData[person][bag] as Item[];
-    const idx = list.findIndex(i => i.id === itemId);
+    const idx = list.findIndex((i: Item) => i.id === itemId);
     if (idx > -1) { list[idx].text = newText; updateCloud(newData); }
   };
 
   const handleAdd = (person: Person, bag: BagType, text: string) => {
-    if (!data) return;
     const newData = JSON.parse(JSON.stringify(data));
     newData[person][bag].push({ id: Date.now().toString(), text, checked: false, returned: false });
     updateCloud(newData);
   };
 
-  if (isLoading && !data) return (
-    <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
-       <RefreshCw className="w-10 h-10 animate-spin text-sa-green" />
-       <p className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Sincronizando Malas...</p>
-    </div>
-  );
-
-  const personData = data ? data[activePerson] : INITIAL_DATA[activePerson];
+  const personData = data[activePerson];
 
   return (
     <div className="animate-in fade-in duration-500">

@@ -15,7 +15,8 @@ import {
   Wallet,
   Brain,
   Car,
-  CloudSun
+  CloudSun,
+  ShoppingBasket
 } from 'lucide-react';
 import { MenuItem } from './types';
 
@@ -48,88 +49,97 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#007749'
   },
   {
-    id: 'checklist', // POS 3: Dourado
-    title: 'Checklist Malas',
-    icon: <ClipboardList className="w-12 h-12 text-white" />,
+    id: 'mercado', // POS 3: Dourado (NOVO)
+    title: 'Mercado & Delivery',
+    icon: <ShoppingBasket className="w-12 h-12 text-white" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#FFB81C'
   },
   {
-    id: 'financeiro', // POS 4: Azul
-    title: 'Financeiro',
-    icon: <Wallet className="w-12 h-12 text-sa-gold" />,
+    id: 'checklist', // POS 4: Azul
+    title: 'Checklist Malas',
+    icon: <ClipboardList className="w-12 h-12 text-white" />,
     themeColor: 'blue',
     gradientClass: 'bg-tribal-blue border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#001489'
   },
   {
-    id: 'gastos', // POS 5: Vermelho
-    title: 'Gastos',
-    icon: <Receipt className="w-12 h-12 text-white" />,
+    id: 'financeiro', // POS 5: Vermelho
+    title: 'Financeiro',
+    icon: <Wallet className="w-12 h-12 text-sa-gold" />,
     themeColor: 'red',
     gradientClass: 'bg-tribal-red border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#E03C31'
   },
   {
-    id: 'uber_bolt', // POS 6: Dark
-    title: 'Uber / Bolt',
-    icon: <Car className="w-12 h-12 text-sa-gold" />,
+    id: 'gastos', // POS 6: Dark
+    title: 'Gastos',
+    icon: <Receipt className="w-12 h-12 text-white" />,
     themeColor: 'black',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#1a1a1a'
   },
   {
-    id: 'guias', // POS 7: Verde
-    title: 'Roteiro',
-    icon: <Map className="w-12 h-12 text-sa-gold" />,
+    id: 'uber_bolt', // POS 7: Verde
+    title: 'Uber / Bolt',
+    icon: <Car className="w-12 h-12 text-sa-gold" />,
     themeColor: 'green',
     gradientClass: 'bg-tribal-green border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#007749'
   },
   {
-    id: 'hospedagem', // POS 8: Dourado
-    title: 'Hospedagem',
-    icon: <Hotel className="w-12 h-12 text-white" />,
+    id: 'guias', // POS 8: Dourado
+    title: 'Roteiro',
+    icon: <Map className="w-12 h-12 text-sa-gold" />,
     themeColor: 'gold',
     gradientClass: 'bg-tribal-gold border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#FFB81C'
   },
   {
-    id: 'tradutor', // POS 9: Azul
-    title: 'Idiomas',
-    icon: <Languages className="w-12 h-12 text-sa-gold" />,
+    id: 'hospedagem', // POS 9: Azul
+    title: 'Hospedagem',
+    icon: <Hotel className="w-12 h-12 text-white" />,
     themeColor: 'blue',
     gradientClass: 'bg-tribal-blue border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#001489'
   },
   {
-    id: 'melhores_destinos', // POS 10: Vermelho
-    title: 'Melhores Destinos',
-    icon: <Compass className="w-12 h-12 text-white" />,
+    id: 'tradutor', // POS 10: Vermelho
+    title: 'Idiomas',
+    icon: <Languages className="w-12 h-12 text-sa-gold" />,
     themeColor: 'red',
     gradientClass: 'bg-tribal-red border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#E03C31'
   },
   {
-    id: 'onibus', // POS 11: Dark
-    title: 'Ônibus',
-    icon: <Bus className="w-12 h-12 text-sa-gold" />,
+    id: 'melhores_destinos', // POS 11: Dark
+    title: 'Melhores Destinos',
+    icon: <Compass className="w-12 h-12 text-white" />,
     themeColor: 'black',
     gradientClass: 'bg-tribal-dark border-sa-gold/50',
     textColor: 'text-white',
     bgColor: '#1a1a1a'
   },
   {
-    id: 'vacinas', // POS 12: Dourado
+    id: 'onibus', // POS 12: Verde
+    title: 'Ônibus',
+    icon: <Bus className="w-12 h-12 text-sa-gold" />,
+    themeColor: 'green',
+    gradientClass: 'bg-tribal-green border-sa-gold/50',
+    textColor: 'text-white',
+    bgColor: '#007749'
+  },
+  {
+    id: 'vacinas', // POS 13: Dourado
     title: 'Vacinas (CIVP)',
     icon: <Syringe className="w-12 h-12 text-white" />,
     themeColor: 'gold',
@@ -138,7 +148,7 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#FFB81C'
   },
   {
-    id: 'voos', // POS 13: Azul
+    id: 'voos', // POS 14: Azul
     title: 'Voos',
     icon: <Plane className="w-12 h-12 text-sa-gold" />,
     themeColor: 'blue',
@@ -147,7 +157,7 @@ export const MENU_ITEMS: MenuItem[] = [
     bgColor: '#001489'
   },
   {
-    id: 'ia_assistant', // POS 14: Vermelho
+    id: 'ia_assistant', // POS 15: Vermelho
     title: 'Guia IA',
     icon: <Brain className="w-12 h-12 text-white" />,
     themeColor: 'red',

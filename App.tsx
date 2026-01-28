@@ -19,6 +19,7 @@ import VaccineCertificate from './components/VaccineCertificate';
 import UberBoltList, { RIDES } from './components/UberBoltList';
 import WeatherLocation from './components/WeatherLocation';
 import WeatherCardHome from './components/WeatherCardHome';
+import Supplies from './components/Supplies';
 import { MENU_ITEMS } from './constants';
 import { Construction, ArrowLeft, Grip } from 'lucide-react';
 import { ThemeColor, MenuItem } from './types';
@@ -159,6 +160,8 @@ const App: React.FC = () => {
           return <UberBoltList />;
       case 'vacinas':
           return <VaccineCertificate />;
+      case 'mercado':
+          return <Supplies />;
       default:
         return (
           <div className="flex flex-col items-center justify-center py-12 text-gray-400 bg-white rounded-3xl shadow-sm border border-gray-100">

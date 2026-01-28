@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
@@ -22,52 +23,50 @@ export interface Expense {
 }
 
 const ExpenseTracker: React.FC = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  // OFFLINE FIRST STATE
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    try {
+      const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<CurrencyCode>('ZAR');
   const [rates, setRates] = useState<{USD: number, BRL: number, ZAR: number} | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
-      // 1. Load Rates (Parallel)
+    // 1. Load Rates (Network First, but CurrencyService handles cache)
+    const initData = async () => {
       const r = await getRates();
       setRates(r);
 
-      // 2. Load Expenses with Cloud Priority
-      try {
-        const cloudData = await loadDataFromCloud('expenses_log');
-        if (cloudData && cloudData.list) {
-            console.log("Gastos carregados da nuvem.");
-            setExpenses(cloudData.list);
-            localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(cloudData.list));
-        } else {
-            // Fallback Local
-            const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
-            if (saved) setExpenses(JSON.parse(saved));
-        }
-      } catch (e) {
-         console.error("Erro no sync de gastos", e);
-         const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
-         if (saved) setExpenses(JSON.parse(saved));
-      } finally {
-        setIsLoading(false);
+      // 2. Background Sync for Expenses
+      if (navigator.onLine) {
+        try {
+            const cloudData = await loadDataFromCloud('expenses_log');
+            if (cloudData && cloudData.list) {
+                // Em um app real, faríamos merge. Aqui, assumimos cloud como verdade se online.
+                setExpenses(cloudData.list);
+                localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(cloudData.list));
+            }
+        } catch (e) { console.error("Background sync failed", e); }
       }
     };
-    loadData();
+    initData();
   }, []);
 
+  // Auto Save Changes
   useEffect(() => {
-    if (!isLoading) {
-        localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
-        // Debounce cloud sync
-        const t = setTimeout(() => {
-        syncDataToCloud('expenses_log', { list: expenses });
-        }, 2000);
-        return () => clearTimeout(t);
-    }
-  }, [expenses, isLoading]);
+    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+    
+    // Debounce cloud sync
+    const t = setTimeout(() => {
+      syncDataToCloud('expenses_log', { list: expenses });
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [expenses]);
 
   const handleAdd = () => {
     if (!desc.trim() || !amount || !rates) return;
@@ -76,9 +75,8 @@ const ExpenseTracker: React.FC = () => {
     let valInBRL = 0;
 
     // Conversion Logic (Base USD)
-    // Formula: (Amount / RateSource) * RateTarget
     if (currency === 'BRL') valInBRL = val;
-    else if (currency === 'USD') valInBRL = val * rates.BRL; // USD to BRL
+    else if (currency === 'USD') valInBRL = val * rates.BRL; 
     else if (currency === 'ZAR') {
       const valInUSD = val / rates.ZAR;
       valInBRL = valInUSD * rates.BRL;
@@ -103,15 +101,6 @@ const ExpenseTracker: React.FC = () => {
   };
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amountInBRL, 0);
-
-  if (isLoading) {
-      return (
-          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
-              <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
-              <p className="text-xs font-bold uppercase tracking-widest">Buscando histórico...</p>
-          </div>
-      );
-  }
 
   return (
     <div className="space-y-6">

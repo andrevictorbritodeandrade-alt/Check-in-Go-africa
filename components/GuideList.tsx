@@ -595,14 +595,22 @@ const GoldenTips: React.FC = () => (
 );
 
 const GuideList: React.FC = () => {
-  const [data, setData] = useState<GuideData>(DEFAULT_GUIDE);
+  // OFFLINE FIRST: Estado inicial vem do Storage, com fallback para o Default
+  const [data, setData] = useState<GuideData>(() => {
+    try {
+      const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_GUIDE;
+    } catch {
+      return DEFAULT_GUIDE;
+    }
+  });
+  
   const [activeCity, setActiveCity] = useState<'CPT' | 'JNB'>('CPT');
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Background Sync
   useEffect(() => {
-    const initData = async () => {
-        try {
-            const cloudData = await loadDataFromCloud('guides_v2');
+    if (navigator.onLine) {
+        loadDataFromCloud('guides_v2').then(cloudData => {
             if (cloudData) {
                 const mergedData = {
                   ...DEFAULT_GUIDE,
@@ -614,38 +622,10 @@ const GuideList: React.FC = () => {
                 };
                 setData(mergedData as GuideData);
                 localStorage.setItem(GUIDE_STORAGE_KEY, JSON.stringify(mergedData));
-            } else {
-                const saved = localStorage.getItem(GUIDE_STORAGE_KEY);
-                if (saved) {
-                  const parsedSaved = JSON.parse(saved);
-                   const mergedLocal = {
-                     ...DEFAULT_GUIDE,
-                     ...parsedSaved,
-                     possibilities: parsedSaved.possibilities || DEFAULT_GUIDE.possibilities
-                   };
-                   setData(mergedLocal as GuideData);
-                } else {
-                  setData(DEFAULT_GUIDE);
-                }
             }
-        } catch (e) {
-            console.error("Erro sync roteiro", e);
-            setData(DEFAULT_GUIDE);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    initData();
+        });
+    }
   }, []);
-
-  if (isLoading) {
-      return (
-          <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
-              <RefreshCw className="w-8 h-8 animate-spin text-sa-green" />
-              <p className="text-xs font-bold uppercase tracking-widest">Carregando Roteiro Premium...</p>
-          </div>
-      );
-  }
 
   const cityTotal = activeCity === 'CPT' ? 'R$ 1.840' : 'R$ 2.520';
   const cityLabel = activeCity === 'CPT' ? 'Cidade do Cabo' : 'Joanesburgo';
