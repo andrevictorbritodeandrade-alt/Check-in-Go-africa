@@ -1,25 +1,24 @@
 
-const CACHE_NAME = 'checkin-go-v9-offline'; // Incremento de versão para forçar atualização
-const STATIC_ASSETS = [
+const CACHE_NAME = 'checkin-go-v11-offline'; // Versão atualizada
+const BASE_ASSETS = [
   '/',
   '/index.html',
-  '/favicon.svg',
   '/manifest.json',
-  '/styles.css'
+  '/favicon.svg'
 ];
 
-// 1. INSTALAÇÃO: Cacheia o essencial imediatamente
+// 1. INSTALAÇÃO: Cacheia o essencial imediatamente (App Shell)
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Força o SW a assumir o controle imediatamente
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Precaching App Shell');
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(BASE_ASSETS);
     })
   );
 });
 
-// 2. ATIVAÇÃO: Limpa caches antigos para garantir que a nova versão rode
+// 2. ATIVAÇÃO: Limpa caches antigos para garantir atualização
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -33,30 +32,28 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  self.clients.claim(); // Controla todas as abas abertas imediatamente
+  self.clients.claim();
 });
 
-// 3. FETCH: Estratégia "Stale-While-Revalidate" Agressiva
-// Isso garante que arquivos JS/CSS gerados pelo build sejam cacheados na primeira visita
+// 3. FETCH: Estratégia Híbrida Robustas
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // A. Ignorar requisições de API (Firebase, Google, etc)
-  // Deixe que a lógica interna do app (que já implementamos) lide com dados offline
+  // A. Ignorar APIs Externas (Deixar o app lidar com erro ou cache interno)
   if (url.protocol.startsWith('http') && (
       url.hostname.includes('googleapis') ||
-      url.hostname.includes('firestore') ||
       url.hostname.includes('firebase') ||
       url.hostname.includes('identitytoolkit') ||
-      url.hostname.includes('exchangerate-api') ||
-      url.hostname.includes('openstreetmap')
+      url.hostname.includes('exchangerate-api') || 
+      url.hostname.includes('nominatim') ||
+      url.hostname.includes('open-meteo')
   )) {
      return; 
   }
 
-  // B. Navegação (HTML): Network First, Fallback to Cache
-  // Se o usuário tentar navegar e estiver offline, serve o index.html (SPA)
+  // B. Navegação (HTML): Network First -> Cache -> Fallback Offline
+  // Garante que o app abra mesmo sem internet
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -66,30 +63,33 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          return caches.match('/index.html').then(res => res || caches.match('/'));
+          return caches.match('/index.html')
+            .then((res) => res || caches.match('/'));
         })
     );
     return;
   }
 
-  // C. Assets (JS, CSS, Imagens Locais): Cache First, depois Network (Stale-While-Revalidate)
+  // C. Assets Estáticos (JS, CSS, Images, Fonts)
+  // Estratégia: Cache First, falling back to Network, then caching network response
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      // Se tiver no cache, retorna imediatamente (velocidade nativa)
-      const fetchPromise = fetch(request).then((networkResponse) => {
-        // Atualiza o cache em segundo plano se a rede responder
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
         }
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseToCache);
+        });
         return networkResponse;
       }).catch(() => {
-        // Se falhar rede, não faz nada (já retornamos o cache se existir)
+        // Falha silenciosa para assets não críticos offline
       });
-
-      return cachedResponse || fetchPromise;
     })
   );
 });
