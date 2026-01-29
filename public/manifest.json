@@ -3,39 +3,25 @@
   "name": "Check-In, GO!",
   "short_name": "Check-In GO!",
   "description": "Seu companheiro definitivo de viagem para a África do Sul.",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "id": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#007749",
+  "background_color": "#000000",
   "theme_color": "#007749",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "./favicon.svg",
       "type": "image/svg+xml",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
+      "src": "./favicon.svg",
       "type": "image/svg+xml",
       "sizes": "512x512",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
+      "purpose": "any maskable"
     }
   ],
   "categories": ["travel", "productivity"]

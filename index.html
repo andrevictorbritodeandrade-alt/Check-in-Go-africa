@@ -5,22 +5,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
-    <!-- PWA / Mobile Native Feel -->
+    <!-- Configurações PWA / App Nativo -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Check-In GO!" />
     <meta name="application-name" content="Check-In GO!" />
-    <meta name="theme-color" content="#007749" />
-    <meta name="msapplication-navbutton-color" content="#007749">
+    
+    <!-- Estilo da Barra de Status -->
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="msapplication-navbutton-color" content="#000000">
     <meta name="description" content="Seu guia offline para a África do Sul." />
     
-    <title>Check-In, GO! - África do Sul</title>
+    <title>Check-In, GO!</title>
     
-    <!-- Assets Críticos (Caminhos Absolutos) -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <!-- Links Relativos (.) para garantir carregamento em qualquer subdomínio -->
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./favicon.svg" />
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,18 +76,16 @@
 </head>
   <body class="bg-black text-slate-800 antialiased selection:bg-sa-gold selection:text-sa-black font-sans overscroll-none">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
     <script>
-      // Registro do Service Worker para Offline & Instalação
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registrado com sucesso:', registration.scope);
-            })
-            .catch(err => {
-              console.log('SW falha no registro:', err);
-            });
+          // Constrói a URL absoluta baseada na localização atual para evitar erro de origem
+          const swUrl = new URL('sw.js', window.location.href).href;
+          
+          navigator.serviceWorker.register(swUrl)
+            .then(reg => console.log('SW registrado na origem:', reg.scope))
+            .catch(err => console.error('Erro SW:', err));
         });
       }
     </script>

@@ -1,31 +1,30 @@
 
-const CACHE_NAME = 'checkin-go-v11-offline'; // Versão atualizada
-const BASE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.svg'
+const CACHE_NAME = 'checkin-go-v14-weather-fix';
+const STATIC_URLS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './favicon.svg'
 ];
 
-// 1. INSTALAÇÃO: Cacheia o essencial imediatamente (App Shell)
+// 1. INSTALAÇÃO
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Precaching App Shell');
-      return cache.addAll(BASE_ASSETS);
+      console.log('[SW] Instalando App Shell');
+      return cache.addAll(STATIC_URLS);
     })
   );
 });
 
-// 2. ATIVAÇÃO: Limpa caches antigos para garantir atualização
+// 2. ATIVAÇÃO
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Limpando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -35,61 +34,73 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. FETCH: Estratégia Híbrida Robustas
+// 3. INTERCEPTAÇÃO DE REDE
 self.addEventListener('fetch', (event) => {
-  const request = event.request;
-  const url = new URL(request.url);
+  const url = new URL(event.request.url);
 
-  // A. Ignorar APIs Externas (Deixar o app lidar com erro ou cache interno)
-  if (url.protocol.startsWith('http') && (
-      url.hostname.includes('googleapis') ||
-      url.hostname.includes('firebase') ||
-      url.hostname.includes('identitytoolkit') ||
-      url.hostname.includes('exchangerate-api') || 
-      url.hostname.includes('nominatim') ||
-      url.hostname.includes('open-meteo')
-  )) {
-     return; 
-  }
-
-  // B. Navegação (HTML): Network First -> Cache -> Fallback Offline
-  // Garante que o app abra mesmo sem internet
-  if (request.mode === 'navigate') {
+  // A. Cache de Clima e Mapas (Stale-While-Revalidate)
+  // Permite que o clima funcione offline se já tiver sido carregado uma vez
+  if (url.hostname.includes('open-meteo.com') || url.hostname.includes('openstreetmap.org')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
-          return response;
-        })
-        .catch(() => {
-          return caches.match('/index.html')
-            .then((res) => res || caches.match('/'));
-        })
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          const fetchPromise = fetch(event.request).then((networkResponse) => {
+            if(networkResponse.ok) {
+                cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch(() => {
+             // Retorna undefined se falhar rede, para o código abaixo tratar ou retornar null
+          });
+          return cachedResponse || fetchPromise;
+        });
+      })
     );
     return;
   }
 
-  // C. Assets Estáticos (JS, CSS, Images, Fonts)
-  // Estratégia: Cache First, falling back to Network, then caching network response
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  // B. Ignorar outras APIs dinâmicas (Firebase, Auth)
+  if (event.request.method !== 'GET' || (
+      url.hostname.includes('googleapis') ||
+      url.hostname.includes('firebase') ||
+      url.hostname.includes('identitytoolkit')
+  )) {
+    return;
+  }
 
-      return fetch(request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+  // C. Assets do Vite e Estáticos - Cache First
+  if (url.pathname.startsWith('/assets/') || 
+      url.pathname.endsWith('.js') || 
+      url.pathname.endsWith('.css') ||
+      url.pathname.endsWith('.svg')) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request).then((networkResponse) => {
+          if(networkResponse.ok) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
+          }
           return networkResponse;
-        }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseToCache);
         });
-        return networkResponse;
-      }).catch(() => {
-        // Falha silenciosa para assets não críticos offline
-      });
-    })
-  );
+      })
+    );
+    return;
+  }
+
+  // D. Navegação (HTML) - Network First com Fallback
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const resClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match('./index.html')
+            .then((res) => res || caches.match('./'));
+        })
+    );
+    return;
+  }
 });
